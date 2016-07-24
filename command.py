@@ -1,6 +1,8 @@
 
 from __future__ import print_function
 
+import os
+
 # Wrapper around a list of command line arguments used to invoke the compiler.
 # Provides methods for getting the compiler path, output file, source, etc.
 #
@@ -25,11 +27,11 @@ class Command(list):
 
     def sourcePath(self):
         assert len(self) > 1, 'Command must have at least two parts.'
-        return self[-1]
+        return os.path.abspath(self[-1])
 
     def compilerPath(self):
         assert len(self) > 0, 'Command is empty.'
-        return self[0]
+        return os.path.abspath(self[0])
 
     def info(self):
         return {

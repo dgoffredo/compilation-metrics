@@ -6,8 +6,11 @@ create table if not exists
 File(
     Key         integer primary key,
     Name        text not null,
-    GitRevision text,
-    GitDiffHead text
+    Path        text not null,
+    GitRevision text not null, /* empty string if not available */
+    GitDiffHead text not null,
+
+    unique(Name, Path, GitRevision, GitDiffHead)
 );'''
 
 machineDef = '''
@@ -20,13 +23,17 @@ Machine(
     Version     text not null,
     MachineArch text not null,
     Processor   text not null,
-    PageSize    integer not null
+    PageSize    integer not null,
+
+    unique(Name, System, Release, Version, MachineArch, Processor,
+           PageSize)
 );'''
 
 compilationDef = '''
 create table if not exists 
 Compilation(
     Key                      text primary key,
+    User                     text not null,
     StartIso8601             text not null,
     DurationSeconds          real not null,
     MaxResidentMemoryBytes   integer,
@@ -43,7 +50,10 @@ argumentDef = '''
 create table if not exists
 Argument(
     CompilationKey text references Compilation(Key) not null,
-    Value          text not null
+    Position       integer not null,
+    Value          text not null,
+
+    primary key(CompilationKey, Position)
 );'''
 
 definitions = [fileDef, machineDef, compilationDef, argumentDef]
