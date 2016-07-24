@@ -12,9 +12,6 @@ import os
 import getpass
 
 def machineInfo():
-    pass # TODO: Rename fields from platform.uname
-    # ['name', 'system', 'release', 'version', 'machineArch',
-    #  'processor, 'pageSize']
     uname = platform.uname()
     return {
         'name': uname[0],
@@ -46,7 +43,7 @@ def doMetrics(cmd, start, durationSeconds, resources):
     }
 
     # Delay importing 'database', because it imports 'uuid', which forks
-    # the process, which throws of the "children" resource consumption
+    # the process, which throws off the "children" resource consumption
     # measurements. At this point, though, we're done measuring, so another
     # fork is fine.
     #
@@ -56,18 +53,23 @@ def doMetrics(cmd, start, durationSeconds, resources):
     database.createEntry(db, getpass.getuser(), start, durationSeconds,
                          outputSize, sourceInfo, machineInfo(), resources, cmd)
 
-if __name__ == '__main__':
-
-    cmd = command.Command(sys.argv[1:])
-
+def collect(args):
+    cmd = command.Command(args)
     rc, start, durationSeconds, resources = measure.call(cmd)
-
     if rc != 0:
-        sys.exit(rc) # Compilation succeed, so there's nothing to do.
+        return rc # Compilation failed, so there's nothing to do.
 
     try:
         doMetrics(cmd, start, durationSeconds, resources)
     except Exception as error:
         print('An Exception occurred while doing metrics:', error)
 
-    sys.exit(rc) # Always return the result of 'measure.call'
+    # Always return the result of 'measure.call', so that even if recording
+    # compilation metrics fails, this script continues to act as a pass-though
+    # to the compiler.
+    #
+    return rc
+              
+if __name__ == '__main__':
+    sys.exit(collect(sys.argv[1:]))
+
