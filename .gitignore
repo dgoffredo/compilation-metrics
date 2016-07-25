@@ -1,0 +1,9 @@
+
+# python
+*.pyc
+
+# vim
+.*.swp
+.*.swo
+.*.swm
+.*.swn
