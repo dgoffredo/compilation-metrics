@@ -27,6 +27,7 @@ def doMetrics(cmd, start, durationSeconds, resources):
     sourcePath = cmd.sourcePath()
     source = os.path.basename(sourcePath)
     outputSize = os.path.getsize(cmd.outputPath())
+    compilerPath = cmd.compilerPath()
 
     if git.inAnyRepo(sourcePath):
         revision = git.getHeadRevision(sourcePath)
@@ -51,7 +52,8 @@ def doMetrics(cmd, start, durationSeconds, resources):
 
     db = database.connect()
     database.createEntry(db, getpass.getuser(), start, durationSeconds,
-                         outputSize, sourceInfo, machineInfo(), resources, cmd)
+                         outputSize, sourceInfo, machineInfo(), resources,
+                         compilerPath, cmd)
 
 def collect(args):
     cmd = command.Command(args)
@@ -62,7 +64,8 @@ def collect(args):
     try:
         doMetrics(cmd, start, durationSeconds, resources)
     except Exception as error:
-        print('An Exception occurred while doing metrics:', error)
+        print('An Exception occurred while doing metrics:', error,
+              file=sys.stderr)
 
     # Always return the result of 'measure.call', so that even if recording
     # compilation metrics fails, this script continues to act as a pass-though

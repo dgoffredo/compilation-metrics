@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import os
+import sys
 import tables
 import sqlite3
 import uuid
@@ -35,14 +36,15 @@ def connect(dbPath=None):
 #                     'blockingOutputOperations']
 #
 def createEntry(db, user, startDatetime, durationSeconds, outputObjectSizeBytes,
-                sourceFileInfo, machineInfo, resourceInfo, command):
+                sourceFileInfo, machineInfo, resourceInfo, compilerPath,
+                command):
     db.execute("PRAGMA foreign_keys = ON;")
 
     machineKey = _addMachine(db, **machineInfo)
     fileKey = _addSourceFile(db, **sourceFileInfo)
     compilationKey = _addCompilation(db, user, startDatetime, durationSeconds,
                                      outputObjectSizeBytes, fileKey, machineKey,
-                                     **resourceInfo)
+                                     compilerPath, **resourceInfo)
     _addArguments(db, compilationKey, command)
     db.commit()
 
@@ -51,39 +53,42 @@ def _addArguments(db, compilationKey, command):
                    "values(?, ?, ?);",
                    ((compilationKey, i, arg) for i, arg in enumerate(command))) 
 
-def _didInsertCompilation(db, key, user, startDatetime, durationSeconds,
-                          outputObjectSizeBytes, fileKey, machineKey,
-                          maxResidentMemoryBytes, userCpuTime, systemCpuTime,
-                          blockingInputOperations, blockingOutputOperations):
-    start = startDatetime.isoformat()
+def _insert(db, table, columnToValue):
+    template = "insert into {table}({cols}) values({placeholders});"
+    query = template.format(table=table, cols=', '.join(columnToValue.keys()),
+                            placeholders=', '.join('?' for _ in columnToValue))
+    db.execute(query, columnToValue.values())
+
+def _didInsert(db, table, columnToValue):
     try:
-        db.execute("insert into Compilation(Key, User, StartIso8601, "
-                       "DurationSeconds, MaxResidentMemoryBytes, UserCpuTime, "
-                       "SystemCpuTime, BlockingInputOperations, "
-                       "BlockingOutputOperations, FileKey, "
-                       "OutputObjectSizeBytes, MachineKey) "
-                   "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
-                   (key, user, start, durationSeconds, maxResidentMemoryBytes,
-                    userCpuTime, systemCpuTime, blockingInputOperations,
-                    blockingOutputOperations, fileKey, outputObjectSizeBytes,
-                    machineKey))
+        _insert(db, table, columnToValue)
         return True
     except sqlite3.Error as error:
-        print(error)
+        print(error, file=sys.stderr)
         return False
 
 def _addCompilation(db, user, startDatetime, durationSeconds,
-                    outputObjectSizeBytes, fileKey, machineKey,
+                    outputObjectSizeBytes, fileKey, machineKey, compilerPath,
                     maxResidentMemoryBytes, userCpuTime, systemCpuTime,
                     blockingInputOperations, blockingOutputOperations):
     maxAttempts = 5
     for _ in range(maxAttempts):
         key = uuid.uuid4().hex
-        if _didInsertCompilation(db, key, user, startDatetime, durationSeconds,
-                                 outputObjectSizeBytes, fileKey, machineKey,
-                                 maxResidentMemoryBytes, userCpuTime,
-                                 systemCpuTime, blockingInputOperations,
-                                 blockingOutputOperations):
+        if _didInsert(db, 'Compilation', {
+            'Key':                      key,
+            'User':                     user,
+            'StartIso8601':             startDatetime.isoformat(),
+            'DurationSeconds':          durationSeconds,
+            'OutputObjectSizeBytes':    outputObjectSizeBytes,
+            'FileKey':                  fileKey,
+            'MachineKey':               machineKey,
+            'CompilerPath':             compilerPath,
+            'MaxResidentMemoryBytes':   maxResidentMemoryBytes,
+            'UserCpuTime':              userCpuTime,
+            'SystemCpuTime':            systemCpuTime,
+            'BlockingInputOperations':  blockingInputOperations,
+            'BlockingOutputOperations': blockingOutputOperations
+        }):
             return key
 
     msg = 'Unable to insert record after {} attempts.'.format(maxAttempts)

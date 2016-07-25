@@ -36,12 +36,13 @@ Compilation(
     User                     text not null,
     StartIso8601             text not null,
     DurationSeconds          real not null,
-    MaxResidentMemoryBytes   integer,
-    UserCpuTime              real,
-    SystemCpuTime            real,
-    BlockingInputOperations  integer,
-    BlockingOutputOperations integer,
+    MaxResidentMemoryBytes   integer not null,
+    UserCpuTime              real not null,
+    SystemCpuTime            real not null,
+    BlockingInputOperations  integer not null,
+    BlockingOutputOperations integer not null,
     FileKey                  integer references File(Key) not null,
+    CompilerPath             text not null,
     OutputObjectSizeBytes    integer not null,
     MachineKey               integer references Machine(Key) not null
 );'''

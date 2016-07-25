@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import os
+from distutils.spawn import find_executable
 
 # Wrapper around a list of command line arguments used to invoke the compiler.
 # Provides methods for getting the compiler path, output file, source, etc.
@@ -31,7 +32,7 @@ class Command(list):
 
     def compilerPath(self):
         assert len(self) > 0, 'Command is empty.'
-        return os.path.abspath(self[0])
+        return find_executable(self[0])
 
     def info(self):
         return {
