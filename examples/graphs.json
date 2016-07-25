@@ -1,0 +1,32 @@
+{
+    "duration-solaris.png": {
+        "query": ["select f.Name, avg(c.DurationSeconds) as AvgDuration      ",
+                  "from CompilationView c inner join                         ",
+                  "     File f on c.FileKey = f.Key                          ",
+                  "inner join Machine m on c.MachineKey = m.Key              ",
+                  "where m.System = 'SunOS'                                  ",
+                  "group by f.Name                                           ",
+                  "order by AvgDuration desc                                 ",
+                  "limit 25;                                                 "]
+    },
+    "duration-aix.png": {
+        "query": ["select f.Name, avg(c.DurationSeconds) as AvgDuration      ",
+                  "from CompilationView c inner join                         ",
+                  "     File f on c.FileKey = f.Key                          ",
+                  "inner join Machine m on c.MachineKey = m.Key              ",
+                  "where m.System = 'AIX'                                    ",
+                  "group by f.Name                                           ",
+                  "order by AvgDuration desc                                 ",
+                  "limit 25;                                                 "]
+    },
+    "duration-linux.png": {
+        "query": ["select f.Name, avg(c.DurationSeconds) as AvgDuration      ",
+                  "from CompilationView c inner join                         ",
+                  "     File f on c.FileKey = f.Key                          ",
+                  "inner join Machine m on c.MachineKey = m.Key              ",
+                  "where m.System = 'Linux'                                  ",
+                  "group by f.Name                                           ",
+                  "order by AvgDuration desc                                 ",
+                  "limit 25;                                                 "]
+    }
+}
