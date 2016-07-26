@@ -7,7 +7,7 @@ expressions need only match the beginning of a line.
 
 *spec &nbsp;::= &nbsp;definition &nbsp;(empty-line &nbsp;definition)**
 
-*definition &nbsp;::= &nbsp;command+ &nbsp;(empty-line &nbsp;sql-block)**
+*definition &nbsp;::= &nbsp;command+ &nbsp;(empty-line &nbsp;sql-block)?*
 
 *sql-block &nbsp;::= &nbsp;indented+*
 
