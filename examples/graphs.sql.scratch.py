@@ -22,21 +22,22 @@ def statements(charIterator):
 		yield ''.join(chars).strip()
 		
 thing="""
+/* We've got some comments. */
 .graph 'duration-solaris.png';
 
     select f.Name, avg(c.DurationSeconds) as AvgDuration
     from CompilationView c inner join
          File f on c.FileKey = f.Key
     inner join Machine m on c.MachineKey = m.Key
-    where m.System = 'SunOS'
+    where m.System = 'SunOS oh my spaces and;'
     group by f.Name
     order by AvgDuration desc
     limit 25;
 
 .graph 'duration-aix.png';
-
+-- Here's another comment
     select f.Name, avg(c.DurationSeconds) as AvgDuration
-    from CompilationView c inner join
+    from CompilationView c inner join -- inline comment
          File f on c.FileKey = f.Key
     inner join Machine m on c.MachineKey = m.Key
     where m.System = 'AIX'
@@ -45,6 +46,7 @@ thing="""
     limit 25;
 
 .graph "duration-linux.png";
+.width 120
 
     select f.Name, avg(c.DurationSeconds) as AvgDuration
     from CompilationView c inner join
@@ -55,8 +57,12 @@ thing="""
     order by AvgDuration desc
     limit 25;
 """
-print('Incoming...')
+# print('Incoming...')
 
-for x in statements(thing):
-	print('What follows is a statement:')
-	print(x)
+# for x in statements(thing):
+# 	print('What follows is a statement:')
+# 	print(x)
+
+# import shlex
+# lexer = shlex.shlex(instream=thing, posix=True)
+# tokens = list(lexer)
