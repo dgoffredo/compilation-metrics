@@ -1,5 +1,5 @@
 
-.plot 'duration-solaris.png'
+.define-plot 'duration-solaris.png'
 
     select f.Name, avg(c.DurationSeconds) as AvgDuration
     from CompilationView c inner join
@@ -10,7 +10,7 @@
     order by AvgDuration desc
     limit 25;
 
-.plot 'duration-aix.png'
+.define-plot 'duration-aix.png'
 
     select f.Name, avg(c.DurationSeconds) as AvgDuration
     from CompilationView c inner join
