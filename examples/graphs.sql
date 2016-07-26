@@ -34,7 +34,7 @@
     order by AvgDuration desc
     limit 25;
 
-.define--query 'memory'
+.define-query 'memory'
 
     select f.Name, 
            avg(c.MaxResidentMemoryBytes) as AvgMem, 
