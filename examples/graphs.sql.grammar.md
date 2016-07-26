@@ -13,7 +13,7 @@ expressions need only match the beginning of a line.
 
 *empty-line &nbsp;::=&nbsp;* `/^\s*$/`
 
-*command &nbsp;::=&nbsp;* `/^\.\s*\S+/`
+*command &nbsp;::=&nbsp;* `/^\.\s*\S/`
 
 *indented &nbsp;::=&nbsp;* `/^[ ]{4}\s*\S/`
 
