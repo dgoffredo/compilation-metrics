@@ -1,7 +1,7 @@
 # Plot/Query Description Grammar
 A file describing a set of plots and their SQL queries must satisfy "*file*"
-(specification) as defined in the grammar below. Note that the regular
-expressions need only match the beginning of a line.
+as defined in the grammar below. Note that the regular expressions need only
+match the beginning of a line.
 
 ---------------------
 
