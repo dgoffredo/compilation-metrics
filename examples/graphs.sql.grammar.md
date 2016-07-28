@@ -1,11 +1,13 @@
 # Plot/Query Description Grammar
-A file describing a set of plots and their SQL queries must satisfy "*spec*"
+A file describing a set of plots and their SQL queries must satisfy "*file*"
 (specification) as defined in the grammar below. Note that the regular
 expressions need only match the beginning of a line.
 
 ---------------------
 
-*spec &nbsp;::= &nbsp;definition &nbsp;(empty-line &nbsp;definition)**
+*file &nbsp;::= &nbsp;empty-line&ast; &nbsp;spec? &nbsp;empty-line&ast;*
+
+*spec &nbsp;::= &nbsp;definition &nbsp;(empty-line+ &nbsp;definition)&ast;*
 
 *definition &nbsp;::= &nbsp;command+ &nbsp;(empty-line &nbsp;sql-block)?*
 
