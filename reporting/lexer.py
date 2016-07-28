@@ -6,7 +6,6 @@ class TokenKind:
     EMPTY_LINE = 'EMPTY_LINE'
     COMMAND_LINE = 'COMMAND_LINE'
     INDENTED_LINE = 'INDENTED_LINE'
-    END = 'END'
 
 class Token(object):
     def __init__(self, kind, text):

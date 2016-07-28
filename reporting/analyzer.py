@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 # TODO
 #
 # This is the module that will take the parsed plot description file and
