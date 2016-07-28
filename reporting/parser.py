@@ -9,7 +9,9 @@ The following abbreviations are used for the token kinds:
     E = TokenKind.EMPTY_LINE
     C = TokenKind.COMMAND_LINE
     I = TokenKind.INDENTED_LINE
-    $ = TokenKind.END
+
+The following abbreviation is used to indicate the end of input:
+    $ = End of input
 
 State Name             Token  Next State  Note / Action
 ---------------------  -----  ----------  ------------------------------------
