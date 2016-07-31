@@ -40,6 +40,9 @@
 ## Most Compiled Files
 ![](images/most-compiled-files.png)
 
+## Most Time Spent on File
+![](images/most-time-consuming-files.png)
+
 ## Most Active Users
 ![](images/most-active-users.png)
 

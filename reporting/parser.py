@@ -60,6 +60,8 @@ def _parseTrait(text):
     template = 'Need at least a dot, a name, and one arg. '
     template += 'Bad command: "{}" parsed as: {}'
     assert len(words) >= 3, template.format(text, words)
+    # ['.', 'name', 'arg1', 'arg2', ...]
+    #     --> Trait('name', ['arg1', 'arg2', ...])
     return Trait(name=words[1], args=words[2:])                                                                         
 
 class Definition(object):
