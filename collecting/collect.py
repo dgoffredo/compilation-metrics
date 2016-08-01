@@ -14,8 +14,8 @@ import getpass
 def machineInfo():
     uname = platform.uname()
     return {
-        'name': uname[0],
-        'system': uname[1],
+        'system': uname[0],
+        'name': uname[1],
         'release': uname[2],
         'version': uname[3],
         'machineArch': uname[4],

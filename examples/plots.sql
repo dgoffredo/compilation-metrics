@@ -35,6 +35,7 @@
     limit 25;
 
 .define-query 'memory'
+.period '2016-02-03' '2016-02-04'
 
     select f.Name, 
            avg(c.MaxResidentMemoryBytes) as AvgMem, 

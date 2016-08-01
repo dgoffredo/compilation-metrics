@@ -15,21 +15,28 @@ class Plot(object):
         self.style = 'bars'
         self.system = None # 'system' is for fixing Machine.System in SQL,
                            # e.g. 'Linux', 'AIX', or 'SunOS' (from uname).
+        self.period = None # The interval of 'start' datetimes to consider.
+                           # If not specified, then it's the largest interval
+                           # in the database (i.e. no restriction).
+                           # If this attribute is not None, then it's a tuple
+                           # (begin, end).
+                           # TBD inclusive, exclusive?
 
     def __repr__(self):
         return str(self.__dict__)
 
 def analyze(definitions):
     if isinstance(definitions, dict):
+        # Treat it as json.
         return analyzeJson(definitions)
     else:
-        assert isinstance(definitions, list), 'Argument be a dict or a list.'
+        # Treat it as a generator.
         return analyzeDefinitions(definitions)
 
-def analyzeDefinitions(definitions):
+def analyzeDefinitions(definitionGenerator):
     queries = dict() # {name: sql}
     plots = dict() # {name: Plot}
-    for definition in definitions:
+    for definition in definitionGenerator:
         queries, plots = analyzeDefinition(definition, queries, plots)
 
     # Lookup the referred-to queries (if there are any).
@@ -79,6 +86,10 @@ def definePlot(definition):
         assert style in whiteset, 'Unknown style "{}"'.format(style)
         plot.style = style
 
+    def setPeriod(trait):
+        assert len(trait.args) == 2, 'A period needs two datetime arguments.'
+        # TODO
+
     def setAttribute(attribute, constructor):
         def setter(trait):
             assert len(trait.args) == 1, 'A {} specifier needs only one argument.'.format(attribute)
@@ -92,7 +103,8 @@ def definePlot(definition):
         'system': setAttribute('system', str),
         'xAxisLabel': setAttribute('xAxisLabel', str),
         'yAxisLabel': setAttribute('yAxisLabel', str),
-        'style': setStyle
+        'style': setStyle,
+        'period': setPeriod
     }
 
     for trait in traits:
@@ -126,8 +138,8 @@ if __name__ == '__main__':
     from lexer import lex
     from parser import parse
 
-    definitions = list(parse(lex(sys.stdin)))
-    for name, plot in analyze(definitions).iteritems():
+    plots = analyze(parse(lex(sys.stdin)))
+    for name, plot in plots.iteritems():
         print(name)
         for key, value in plot.__dict__.iteritems():
             print('    ', key, '-->', value)    
