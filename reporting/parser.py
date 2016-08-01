@@ -151,6 +151,8 @@ State Name             Token  Next State  Note / Action
 
     def _expectSql(self, token):
         '''
+State Name             Token  Next State  Note / Action
+---------------------  -----  ----------  ------------------------------------
 (4) Expect sql or end  E      (1)         Current def had a one line SQL query
                        C      Error       Need empty line between SQL and def
                        I      (4)         Adding more lines to the current SQL
