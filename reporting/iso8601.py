@@ -98,7 +98,7 @@ def parse(iso8601String):
     hour = zeroOr('hour')
     minute = zeroOr('minute')
     second = zeroOr('second')
-    microsecond = int(zeroOr('fraction', float) * 10e6)
+    microsecond = int(round(zeroOr('fraction', float) * 10e6))
 
     return datetime.datetime(year, month, day, hour, minute, second, microsecond, tz)
 

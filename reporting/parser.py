@@ -81,14 +81,14 @@ class Definition(object):
 #
 class Parser(object):
     def __init__(self):
-        self._currentDef = None
+        self.currentDef = None
 
     def _newDef(self, text):
         new = Definition()
         new.traits.append(_parseTrait(text))
 
-        old = self._currentDef
-        self._currentDef = new
+        old = self.currentDef
+        self.currentDef = new
         return old
 
     def start(self):
@@ -123,7 +123,7 @@ State Name             Token  Next State  Note / Action
         if token.kind == Kind.EMPTY_LINE:
             return self._expectDefinitionOrSql, None
         elif token.kind == Kind.COMMAND_LINE:
-            self._currentDef.traits.append(_parseTrait(token.text))
+            self.currentDef.traits.append(_parseTrait(token.text))
             return self._expectCommand, None
         else: 
             assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
@@ -144,7 +144,7 @@ State Name             Token  Next State  Note / Action
             return self._expectCommand, self._newDef(token.text)
         else: 
             assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
-            self._currentDef.sqlBlock = [token.text]
+            self.currentDef.sqlBlock = [token.text]
             return self._expectSql, None
 
     def _expectSql(self, token):
@@ -163,7 +163,7 @@ State Name             Token  Next State  Note / Action
                             'unindented section at: {}'.format(token))
         else: 
             assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
-            self._currentDef.sqlBlock.append(token.text)
+            self.currentDef.sqlBlock.append(token.text)
             return self._expectSql, None
 
 def parse(tokenGenerator):
@@ -173,6 +173,10 @@ def parse(tokenGenerator):
         f, newDefinition = f(token)
         if newDefinition:
             yield newDefinition
+    
+    # Leftovers
+    if parser.currentDef:
+        yield parser.currentDef
 
 if __name__ == '__main__':
     import sys
