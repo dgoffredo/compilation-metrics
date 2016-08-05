@@ -1,6 +1,8 @@
 
 from __future__ import print_function
 
+import iso8601
+
 # TODO Document
 
 class Plot(object):
@@ -88,7 +90,11 @@ def definePlot(definition):
 
     def setPeriod(trait):
         assert len(trait.args) == 2, 'A period needs two datetime arguments.'
-        # TODO
+        args = trait.args
+        parse = iso8601.parse
+        begin, end = parse(args[0]), parse(args[1])
+        assert begin < end, 'The datetime range must be positive and nonempty.'
+        plot.period = begin, end
 
     def setAttribute(attribute, constructor):
         def setter(trait):

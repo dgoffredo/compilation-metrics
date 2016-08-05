@@ -74,22 +74,22 @@ class Definition(object):
 
 
 # Each of the 'expect' methods (corresponding to the states tabulated above)
-# takes a token and returns the bound method to be invoked with the next token,
-# or returns None if parsing is complete. Each function raises an Exception on
-# error.
+# takes a token and returns a tuple (method, definition)
+# where 'method' is the bound method to be invoked with the next token, and 
+# 'definition' is the definition that just finished parsing (or None if no
+# definition was just finished).
 #
 class Parser(object):
     def __init__(self):
-        self.definitions = []
+        self._currentDef = None
 
-    def _currentDef(self):
-        assert len(self.definitions) > 0
-        return self.definitions[-1]
+    def _newDef(self, text):
+        new = Definition()
+        new.traits.append(_parseTrait(text))
 
-    def _newDefinition(self, text):
-        first = Definition()
-        first.traits.append(_parseTrait(text))
-        self.definitions.append(first)
+        old = self._currentDef
+        self._currentDef = new
+        return old
 
     def start(self):
         return self._expectDefinition
@@ -104,10 +104,9 @@ State Name             Token  Next State  Note / Action
                        $      Success     This file was all whitespace or empty
         '''
         if token.kind == Kind.EMPTY_LINE:
-            return self._expectDefinition
+            return self._expectDefinition, None
         elif token.kind == Kind.COMMAND_LINE:
-            self._newDefinition(token.text)
-            return self._expectCommand
+            return self._expectCommand, self._newDef(token.text)
         else: 
             assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
             raise Exception('Unexpected indent at: "{}"'.format(token.text))
@@ -122,10 +121,10 @@ State Name             Token  Next State  Note / Action
                        $      Success     This last def had only one trait
         '''
         if token.kind == Kind.EMPTY_LINE:
-            return self._expectDefinitionOrSql
+            return self._expectDefinitionOrSql, None
         elif token.kind == Kind.COMMAND_LINE:
-            self._currentDef().traits.append(_parseTrait(token.text))
-            return self._expectCommand
+            self._currentDef.traits.append(_parseTrait(token.text))
+            return self._expectCommand, None
         else: 
             assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
             raise Exception('Unexpected indent at: "{}"'.format(token.text))
@@ -140,14 +139,13 @@ State Name             Token  Next State  Note / Action
                        $      Success     This last def had only one trait
         '''
         if token.kind == Kind.EMPTY_LINE:
-            return self._expectDefinition
+            return self._expectDefinition, None
         elif token.kind == Kind.COMMAND_LINE:
-            self._newDefinition(token.text)
-            return self._expectCommand
+            return self._expectCommand, self._newDef(token.text)
         else: 
             assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
-            self._currentDef().sqlBlock = [token.text]
-            return self._expectSql
+            self._currentDef.sqlBlock = [token.text]
+            return self._expectSql, None
 
     def _expectSql(self, token):
         '''
@@ -159,22 +157,22 @@ State Name             Token  Next State  Note / Action
                        $      Success     The last def's SQL just ended
         '''
         if token.kind == Kind.EMPTY_LINE:
-            return self._expectDefinition
+            return self._expectDefinition, None
         elif token.kind == Kind.COMMAND_LINE:
             raise Exception('Need an empty line between indented section and '
                             'unindented section at: {}'.format(token))
         else: 
             assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
-            self._currentDef().sqlBlock.append(token.text)
-            return self._expectSql
+            self._currentDef.sqlBlock.append(token.text)
+            return self._expectSql, None
 
 def parse(tokenGenerator):
     parser = Parser()
     f = parser.start()
     for token in tokenGenerator:
-        f = f(token)
-
-    return parser.definitions
+        f, newDefinition = f(token)
+        if newDefinition:
+            yield newDefinition
 
 if __name__ == '__main__':
     import sys
