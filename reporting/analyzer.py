@@ -9,7 +9,6 @@ class Plot(object):
     def __init__(self, imageName):
         self.imageName = imageName
         self.query = None # Filled in later.
-        self.queryRef = None # Might or might not exist.
         self.width = 2 * 1024
         self.height = 2 * 768
         self.xAxisLabel = None
@@ -30,28 +29,19 @@ class Plot(object):
 def analyze(definitions):
     if isinstance(definitions, dict):
         # Treat it as json.
-        return analyzeJson(definitions)
+        for plot in analyzeJson(definitions):
+            yield plot
     else:
         # Treat it as a generator.
-        return analyzeDefinitions(definitions)
+        for plot in analyzeDefinitions(definitions):
+            yield plot
 
 def analyzeDefinitions(definitionGenerator):
     queries = dict() # {name: sql}
-    plots = dict() # {name: Plot}
     for definition in definitionGenerator:
-        queries, plots = analyzeDefinition(definition, queries, plots)
-
-    # Lookup the referred-to queries (if there are any).
-    for plot in plots.itervalues():
-        queryName = plot.queryRef
-        if queryName is None:
-            assert plot.query is not None, 'Plot must have query or query reference.'
-            continue
-        sql = queries.get(queryName)
-        assert sql is not None, 'Undefined SQL query "{}"'.format(queryName)
-        plot.query = sql
-
-    return plots
+        queries, plot = analyzeDefinition(definition, queries)
+        if plot:
+            yield plot
 
 def defineQuery(definition):
     firstTrait = definition.traits[0]
@@ -62,7 +52,7 @@ def defineQuery(definition):
     sql = ''.join(definition.sqlBlock)
     return queryName, sql
 
-def definePlot(definition):
+def definePlot(definition, queries):
     firstTrait = definition.traits[0]
     assert firstTrait.name == 'define-plot', 'Bad definition "{}"'.format(firstTrait.name)
     assert len(firstTrait.args) == 1, '"define-plot" must have a name only.'
@@ -78,8 +68,10 @@ def definePlot(definition):
         sqlDuped = definition.sqlBlock is not None
         assert not sqlDuped, 'Both a "query" trait and a SQL block were specified.'
         queryName = trait.args[0]
-        assert plot.queryRef is None, 'query specified more than once.'
-        plot.queryRef = queryName
+        assert plot.query is None, 'query specified more than once.'
+        query = queries.get(queryName)
+        assert query, 'Unknown query for name "{}"'.format(queryName)
+        plot.query = query
 
     def setStyle(trait):
         assert len(trait.args) == 1, 'A style needs (only) a name.'
@@ -121,7 +113,7 @@ def definePlot(definition):
 
     return plot
 
-def analyzeDefinition(definition, queries, plots):
+def analyzeDefinition(definition, queries):
     assert len(definition.traits) != 0, 'Must have at least one trait.'
     firstTrait = definition.traits[0]
     assert len(firstTrait.args) != 0, '"define" trait must have an argument.'
@@ -130,11 +122,10 @@ def analyzeDefinition(definition, queries, plots):
         queryName, sql = defineQuery(definition)
         assert queryName not in queries, 'Duplicate query name "{}"'.format(queryName)
         queries[queryName] = sql
+        return queries, None # No plot
     else:
-        plot = definePlot(definition)
-        plots[plot.imageName] = plot
-
-    return queries, plots
+        plot = definePlot(definition, queries)
+        return queries, plot
 
 def analyzeJson(defs):
     raise Exception('Not yet implemented.') # TODO
@@ -144,9 +135,7 @@ if __name__ == '__main__':
     from lexer import lex
     from parser import parse
 
-    plots = analyze(parse(lex(sys.stdin)))
-    for name, plot in plots.iteritems():
-        print(name)
+    for plot in analyze(parse(lex(sys.stdin))):
         for key, value in plot.__dict__.iteritems():
             print('    ', key, '-->', value)    
             
