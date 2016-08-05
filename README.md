@@ -13,10 +13,10 @@ Compilation Metrics is written in python. One goal of the project is to have
 as few dependencies as possible, so that it can be used as a drop-in 
 replacement for the compiler in most build environments.
 
-Collecting statistics requires the following dependencies:
+Collecting statistics has the following dependencies:
 * unix/linux
 * python 2.7+
-* git
+* git (optional)
 
 Report generation has the following additional dependencies:
 * gnuplot

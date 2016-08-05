@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import subprocess
 import os
+from distutils.spawn import find_executable
 
 def _dirOf(filePath):
     return os.path.dirname(os.path.realpath(filePath))
@@ -18,6 +19,9 @@ def _callInDirOf(filePath, command):
                                    stderr=devnull)
         output, _ = process.communicate()
         return process.returncode, output.rstrip()
+
+def hasGit():
+    return find_executable('git') is not None
 
 def inAnyRepo(filePath):
     rc, _ = _callInDirOf(filePath, ['git', 'rev-parse'])

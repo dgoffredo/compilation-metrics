@@ -29,7 +29,7 @@ def doMetrics(cmd, start, durationSeconds, resources):
     outputSize = os.path.getsize(cmd.outputPath())
     compilerPath = cmd.compilerPath()
 
-    if git.inAnyRepo(sourcePath):
+    if git.hasGit() and git.inAnyRepo(sourcePath):
         revision = git.getHeadRevision(sourcePath)
         diff = git.diffHead(sourcePath)
     else:
