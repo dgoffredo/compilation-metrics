@@ -40,3 +40,8 @@ with appendix.Builder(rootFolder, plotFolder, dataFolder) as appendixBuilder:
                 queryDataFile.addRecord(dataRecord)
                 renderer.addRecord(dataRecord)
                 appendixBuilder.addRecord(dataRecord)
+
+# Pieces to be built:
+#     - gnuplot scripts (including rotate)
+#     - query thinger (views, etc.)
+#     - html outputter
