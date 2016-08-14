@@ -43,17 +43,18 @@ def doMetrics(cmd, start, durationSeconds, resources):
         'gitDiffHead': diff
     }
 
-    # Delay importing 'database', because it imports 'uuid', which forks
+    # Delay importing 'database.write', because it imports 'uuid', which forks
     # the process, which throws off the "children" resource consumption
     # measurements. At this point, though, we're done measuring, so another
     # fork is fine.
     #
-    import database
+    from database.open import connect
+    from database.write import createEntry
 
-    db = database.connect()
-    database.createEntry(db, getpass.getuser(), start, durationSeconds,
-                         outputSize, sourceInfo, machineInfo(), resources,
-                         compilerPath, cmd)
+    db = connect()
+    createEntry(db, getpass.getuser(), start, durationSeconds,
+                outputSize, sourceInfo, machineInfo(), resources,
+                compilerPath, cmd)
 
 def collect(args):
     cmd = command.Command(args)
