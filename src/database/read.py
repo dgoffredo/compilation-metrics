@@ -143,8 +143,8 @@ def _scopedView(db, plot):
     db.commit()
 
 @contextmanager
-def _databaseWithView(plot):
-    db = connect()
+def _databaseWithView(plot, databaseName):
+    db = connect(databaseName)
 
     # Add a temporary view to our connection and expose it to the caller.
     with _scopedView(db, plot) as dbWithView:
@@ -153,8 +153,8 @@ def _databaseWithView(plot):
     # Now the caller is done with the connection.
     db.close()
 
-def query(plot):
-    with _databaseWithView(plot) as db:
+def query(plot, databaseName=None):
+    with _databaseWithView(plot, databaseName) as db:
         for row in db.execute(plot.query):
             yield row 
 
