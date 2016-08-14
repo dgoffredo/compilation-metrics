@@ -48,8 +48,8 @@ def doMetrics(cmd, start, durationSeconds, resources):
     # measurements. At this point, though, we're done measuring, so another
     # fork is fine.
     #
-    from database.open import connect
-    from database.write import createEntry
+    from ..database.open import connect
+    from ..database.write import createEntry
 
     db = connect()
     createEntry(db, getpass.getuser(), start, durationSeconds,

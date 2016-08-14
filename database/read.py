@@ -178,7 +178,7 @@ if __name__ == '__main__':
 
     keepends = True
     for plot in analyze(parse(lex(plotDesc.splitlines(keepends)))):
-        print('Going to run query for plot:', plot)
+        print('Going to run query for plot:\n', plot)
         print()
         for row in query(plot):
             print(row)
