@@ -9,11 +9,13 @@ class Plot(object):
     def __init__(self, imageName):
         self.imageName = imageName
         self.query = None # Filled in later.
-        self.width = 2 * 1024
-        self.height = 2 * 768
+        self.width = 1024
+        self.height = 768
         self.xAxisLabel = None
         self.yAxisLabel = None
-        self.style = 'bars'
+        self.yMin = 0
+        self.yMax = None
+        self.style = 'horizontal-bars'
         self.system = None # 'system' is for fixing Machine.System in SQL,
                            # e.g. 'Linux', 'AIX', or 'SunOS' (from uname).
         self.period = None # The interval of 'start' datetimes to consider.
@@ -101,6 +103,8 @@ def definePlot(definition, queries):
         'system': setAttribute('system', str),
         'xAxisLabel': setAttribute('xAxisLabel', str),
         'yAxisLabel': setAttribute('yAxisLabel', str),
+        'yMin': setAttribute('yMin', float),
+        'yMax': setAttribute('yMax', float),
         'style': setStyle,
         'period': setPeriod
     }

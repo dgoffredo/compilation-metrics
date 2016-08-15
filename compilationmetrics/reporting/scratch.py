@@ -32,16 +32,30 @@ an "appendix" HTML file.
 
 '''
 
-with appendix.Builder(rootFolder, plotFolder, dataFolder) as appendixBuilder:
-    for plot in analyzePlotsFile(...):
+with gnuplot.Gnuplot() as gp, \
+     appendix.Builder(rootFolder, imageFolder) as appendixBuilder:
+    for plot in analyzePlotsFile(plotsFile):
         appendixBuilder.beginPlot(plot)
-        with plotter.Renderer(plot, imageFolder) as renderer:
+        with plotter.Renderer(plot, imageFolder, gp) as renderer:
             for dataRecord in database.query(plot):
-                queryDataFile.addRecord(dataRecord)
                 renderer.addRecord(dataRecord)
                 appendixBuilder.addRecord(dataRecord)
 
+'''
+In a C++ like language, that would be this:
+
+let gp = Gnuplot()
+let appendixBuilder = appendix.Builder(rootFolder, imageFolder)
+
+for plot in analyzePlotsFile(plotsFile):
+    appendixBuilder.beginPlot(plot)
+    let renderer = plotter.Renderer(plot, imageFolder, gp)
+    for dataRecord in database.query(plot):
+        renderer.addRecord(dataRecord)
+        appendixBuilder.addRecord(dataRecord)
+
+'''
+
 # Pieces to be built:
 #     - gnuplot scripts (including rotate)
-#     - query thinger (views, etc.)
-#     - html outputter
+#     - appendix html outputter

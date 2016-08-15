@@ -1,0 +1,8 @@
+"thingy with space" 0.8
+"basfoo_foocoocachoo.cpp" 0.5
+"basmsg_getthethingerstuff.cpp" 0.3
+"basnet_otherthingything" 0.2
+"mmnm_simonpublisher.cpp" 0.2
+"foobar_bazzfoocachoo.cpp" 0.15
+"basnet_thingything.cpp" 0.1
+"bdlf_somethingoranother.cpp" 0.05
