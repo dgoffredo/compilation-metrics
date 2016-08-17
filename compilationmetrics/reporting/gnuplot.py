@@ -4,14 +4,17 @@
 from distutils.spawn import find_executable
 import subprocess
 import os
+import json
 
 def hasGnuplot():
     return find_executable('gnuplot') is not None
 
+# Prepare for sending to gnuplot as data. Print as-is, except for strings,
+# which are quoted and escaped.
 def stringify(value):
     if isinstance(value, basestring):
-        # quoted and escaped
-        return '"{}"'.format(str(value).replace('"', r'\"'))
+        # quoted and escaped string
+        return json.dumps(value)
     else:
         return str(value)
 
