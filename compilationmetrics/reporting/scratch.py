@@ -32,12 +32,14 @@ an "appendix" HTML file.
 
 '''
 
+markdown.toHtml(reportMarkdown, indexHtml)
+
 with gnuplot.Gnuplot() as gp, \
      appendix.Builder(rootFolder, imageFolder) as appendixBuilder:
     for plot in analyzePlotsFile(plotsFile):
         appendixBuilder.beginPlot(plot)
         with plotter.Renderer(plot, imageFolder, gp) as renderer:
-            for dataRecord in database.query(plot):
+            for dataRecord in database.read.query(plot):
                 renderer.addRecord(dataRecord)
                 appendixBuilder.addRecord(dataRecord)
 
