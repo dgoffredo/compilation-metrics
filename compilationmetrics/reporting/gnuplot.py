@@ -1,6 +1,5 @@
 
-# A thing wrapper around gnuplot using a pipe.
-
+from __future__ import print_function
 from distutils.spawn import find_executable
 import subprocess
 import os
@@ -22,11 +21,10 @@ class Gnuplot(object):
     def __init__(self):
         assert hasGnuplot, "Can't find gnuplot."
         self._devnull = open(os.devnull, 'wb')
-        self._subprocess = subprocess.Popen(['gnuplot'], 
+        self._subprocess = subprocess.Popen(['gnuplot'],
                                             stdin=subprocess.PIPE,
                                             stdout=self._devnull)
         self._stdin = self._subprocess.stdin
-        self.isPlottingData = False
 
     def writeLine(self, text):
         self._stdin.write(text)
@@ -43,15 +41,12 @@ class Gnuplot(object):
 
     def endDataSection(self):
         self.send('e')
-        self.isPlottingData = False
 
     def writeDataRow(self, row):
-        self.isPlottingData = True
         self.writeLine(' '.join(stringify(value) for value in row))
 
-    def setPng(self, width, height, outputFilename):
-        self.send("set terminal png size {}, {} nocrop".format(width, height),
-                  "set output '{}'".format(outputFilename))
+    def closeOutput(self):
+        self.send("set output")
 
     def quit(self):
         self._stdin.close()
@@ -59,7 +54,7 @@ class Gnuplot(object):
         self._devnull.close()
 
     def __enter__(self):
-        return thing
+        return self
 
     def __exit__(self, type, value, traceback):
         self.quit()
