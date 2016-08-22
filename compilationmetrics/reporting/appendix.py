@@ -2,20 +2,7 @@
 # Takes Plot objects and data records and produces HTML output containing
 # the name, image, and configuration of each Plot along with a table of its
 # data values.
-
-# TODO
-'''
-markdown.toHtml(reportMarkdown, indexHtml)
-
-with gnuplot.Gnuplot() as gp, \
-     appendix.Builder(rootFolder, imageFolder) as appendixBuilder:
-    for plot in analyzePlotsFile(plotsFile):
-        appendixBuilder.beginPlot(plot)
-        with plotter.Renderer(plot, imageFolder, gp) as renderer:
-            for dataRecord in database.read.query(plot):
-                renderer.addRecord(dataRecord)
-                appendixBuilder.addRecord(dataRecord)
-'''
+# See 'Builder'.
 
 from contextlib import contextmanager
 import os.path
