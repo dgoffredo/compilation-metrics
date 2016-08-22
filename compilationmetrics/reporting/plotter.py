@@ -11,12 +11,8 @@ def _doubleQuote(s):
     s = s if isinstance(s, basestring) else str(s)
     return json.dumps(s)
 
-from select import PIPE_BUF
-
 def _rotate(plot, imageFolder, gp):
     imagePath = os.path.join(imageFolder, plot.imageName)
-
-    bufferFiller = ''.join('x' for _ in range(2 * PIPE_BUF)) 
 
     template = '\n'.join([
         "reset",
@@ -51,13 +47,9 @@ def _rotate(plot, imageFolder, gp):
           'using the temporary file', tempPath)
 
     script = template.format(inFile=_doubleQuote(imagePath),
-                             outFile=_doubleQuote(tempPath),
-                             filler=_doubleQuote(bufferFiller))
+                             outFile=_doubleQuote(tempPath))
 
-    print('Rotation script:\n\n{}'.format(script))
-    print('Rotating...')
     gp.send(script)
-
     gp.closeOutput()
     
     # TODO: It'd be better to do this using shutil, but then there's a race
