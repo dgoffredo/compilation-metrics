@@ -13,7 +13,7 @@ class Plot(object):
         self.height = 600
         self.xAxisLabel = None
         self.yAxisLabel = None
-        self.yMin = 0
+        self.yMin = None
         self.yMax = None
         self.style = 'horizontal-bars'
         self.system = None # 'system' is for fixing Machine.System in SQL,
