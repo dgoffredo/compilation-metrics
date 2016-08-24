@@ -34,7 +34,7 @@ def _rotate(plot, imageFolder, gp):
         "",
         "set xrange [xmin:xmax]",
         "set yrange [ymin:ymax]",
-        "set term png truecolor size (xmax-xmin),(ymax-ymin)",
+        "set term pngcairo truecolor size (xmax-xmin),(ymax-ymin)",
         "",
         "set output {outFile}",
         "plot {inFile} binary filetype=png rotate=-90deg w rgbima notitle"
@@ -111,7 +111,7 @@ def _boilerplate(plot, imageFolder):
 
     template = '\n'.join([
         "reset",
-        "set terminal png size {width}, {height} nocrop",
+        "set terminal pngcairo size {width}, {height} nocrop",
         "set output {name}"
     ]) + '\n'
 

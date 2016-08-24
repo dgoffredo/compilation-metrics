@@ -45,8 +45,7 @@ import datetime, time, re
 def currentOffset():
     nowUnix = time.time()
     dt = datetime.datetime
-    delta = dt.fromtimestamp(nowUnix) - dt.utcfromtimestamp(nowUnix)
-    return datetime.timedelta(seconds=delta)
+    return dt.fromtimestamp(nowUnix) - dt.utcfromtimestamp(nowUnix)
 
 # Lazy loading of compiled regex
 #
