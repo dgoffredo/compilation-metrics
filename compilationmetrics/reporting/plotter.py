@@ -1,6 +1,5 @@
 
 
-from __future__ import print_function
 from contextlib import contextmanager
 import gnuplot
 import json
@@ -43,8 +42,6 @@ def _rotate(plot, imageFolder, gp):
 
     tempFolder = tempfile.mkdtemp()
     tempPath = os.path.join(tempFolder, 'tmp.png')
-    print('Going to try to rotate', imagePath,
-          'using the temporary file', tempPath)
 
     script = template.format(inFile=_doubleQuote(imagePath),
                              outFile=_doubleQuote(tempPath))
@@ -163,6 +160,9 @@ class RendererHandle(object):
     # 'row' is an iterable.
     def writeDataRow(self, row):
         return self._gp.writeDataRow(row)
+
+    def addRecord(self, row):
+        return self.writeDataRow(row)
 
 @contextmanager
 def Renderer(plot, imageFolder, gnuplotInstance=None):

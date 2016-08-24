@@ -3,8 +3,11 @@ from __future__ import print_function
 
 import os
 import sqlite3
+import datetime
 
 import tables
+
+sqlite3.register_adapter(datetime.datetime, datetime.datetime.isoformat)
 
 _dbEnvKey = 'COMPILATION_METRICS_DB'
 

@@ -7,9 +7,27 @@
 from contextlib import contextmanager
 import os.path
 import cgi
+import shutil
+import datetime
+
+def _isDatetime(value):
+    return isinstance(value, datetime.datetime)
+
+def _isDatetimeRange(value):
+    try:
+        begin, end = value
+        return _isDatetime(begin) and _isDatetime(end)
+    except:
+        return False
+
+def _datetimeRangeToString(value):
+    begin, end = value
+    return '{} to {}'.format(begin.isoformat(), end.isoformat())
 
 def _escape(s):
-    if not isinstance(s, basestring):
+    if _isDatetimeRange(s):
+        s = _datetimeRangeToString(s)
+    elif not isinstance(s, basestring):
         s = str(s)
 
     # cgi.escape does angle brackets, ampersands, and double quotes.
@@ -22,8 +40,10 @@ def _addRecord(row, write):
         write('<td>{}</td>'.format(_escape(data)))
     write('</tr>\n')
 
-def _finishPlot(write):
+def _finishPlot(write, last=False):
     write('</table>\n</p>\n\n')
+    if not last:
+        write('<hr />')
 
 def _ifNone(value, default):
     return default if value is None else value
@@ -100,6 +120,17 @@ def _beginPlot(plot, imageFolder, write):
         yTitle=_escape(_ifNone(plot.yAxisLabel, 'Y Value'))
     ))
 
+def _scriptDir():
+    return os.path.dirname(os.path.realpath(__file__))
+
+def installDependencies(rootFolder):
+    folder = os.path.join(_scriptDir(), 'highlight')
+    assert os.path.exists(folder), 'Expected {} to exists.'.format(folder)
+
+    destination = os.path.join(rootFolder, 'highlight')
+    if os.path.exists(destination):
+        shutil.rmtree(destination, ignore_errors=True)
+    shutil.copytree(folder, destination)
 
 # An object that exposes two functions. The functions must be passed in as
 # constructor arguments.
@@ -108,7 +139,7 @@ class BuilderHandle(object):
         self.beginPlot = beginPlot
         self.addRecord = addRecord
 
-class Flag(object):
+class _Flag(object):
     def __init__(self, initial=False):
         self.value = initial
 
@@ -119,11 +150,11 @@ class Flag(object):
         self.value = value
 
 @contextmanager
-def Builder(rootFolder, imageFolder):
+def Builder(rootFolder, imageFolder, fileName='appendix.html'):
     # 'imageFolder' must be expressed relative to 'rootFolder'.
-    with open(os.path.join(rootFolder, 'appendix.html'), 'w') as out:
+    with open(os.path.join(rootFolder, fileName), 'w') as out:
         _beginHtml(out.write)
-        hasPlots = Flag()
+        hasPlots = _Flag()
 
         def beginPlot(plot):
             if hasPlots:
@@ -140,7 +171,7 @@ def Builder(rootFolder, imageFolder):
         yield BuilderHandle(beginPlot, addRecord)
 
         if hasPlots:
-            _finishPlot(out.write)
+            _finishPlot(out.write, last=True)
 
         _finishHtml(out.write)
 

@@ -9,8 +9,8 @@ class Plot(object):
     def __init__(self, imageName):
         self.imageName = imageName
         self.query = None # Filled in later.
-        self.width = 1024
-        self.height = 768
+        self.width = 800
+        self.height = 600
         self.xAxisLabel = None
         self.yAxisLabel = None
         self.yMin = 0
