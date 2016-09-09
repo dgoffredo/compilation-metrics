@@ -29,6 +29,11 @@ class Command(list):
     def sourcePath(self):
         assert len(self) > 1, 'Command must have at least two parts.'
         return os.path.abspath(self[-1])
+        # TODO gcc (at least certain versions) allows for flags to be
+        #      specified after the file name, e.g.
+        #          gcc file.c -c -o output.o
+        #      Most of the time, though, the last argument is the file to
+        #      compile, if there is a file to compile at all.
 
     def compilerPath(self):
         assert len(self) > 0, 'Command is empty.'
