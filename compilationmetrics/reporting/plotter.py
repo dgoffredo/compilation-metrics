@@ -97,7 +97,7 @@ _rotatedStyles = frozenset(['horizontal-bars'])
 # This function returns gnuplot commands that clear any previous configuration
 # and prepare the output for 'plot'.
 def _boilerplate(plot, imageFolder):
-    assert plot.imageName is not None, 'A plot must have an image name.'
+    enforce(plot.imageName is not None, 'A plot must have an image name.')
     imagePath = os.path.join(imageFolder, plot.imageName)
 
     # If the 'style' of this plot involves a rotation of the entire image,
@@ -123,7 +123,7 @@ def _setupPlot(plot, imageFolder, gnuplotInstance):
     gp = gnuplotInstance
 
     style = plot.style
-    assert style in _styles, 'Unknown style "{}"'.format(style)
+    enforce(style in _styles, 'Unknown style "{}"'.format(style))
 
     # Send the boilerplate commands (reset, set terminal, etc.).
     gp.send(_boilerplate(plot, imageFolder))

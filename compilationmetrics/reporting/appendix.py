@@ -4,6 +4,8 @@
 # data values.
 # See 'Builder'.
 
+from ..enforce import enforce
+
 from contextlib import contextmanager
 import os.path
 import cgi
@@ -125,7 +127,7 @@ def _scriptDir():
 
 def installDependencies(rootFolder):
     folder = os.path.join(_scriptDir(), 'highlight')
-    assert os.path.exists(folder), 'Expected {} to exists.'.format(folder)
+    enforce(os.path.exists(folder), 'Expected {} to exists.'.format(folder))
 
     destination = os.path.join(rootFolder, 'highlight')
     if os.path.exists(destination):

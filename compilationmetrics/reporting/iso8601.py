@@ -165,7 +165,7 @@ def parse(iso8601String):
         return _makeDatetime(match)
 
     match = durationRegex().match(s)
-    assert match, 'Invalid (or unsupported) ISO 8601: {}'.format(s)
+    enforce(match, 'Invalid (or unsupported) ISO 8601: {}'.format(s))
     if match:
         return _makeTimedelta(match)
 

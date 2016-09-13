@@ -1,6 +1,8 @@
 
 from __future__ import print_function
 
+from ..enforce import enforce
+
 import sys
 import uuid
 import sqlite3
@@ -91,8 +93,8 @@ def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
                    values)
     
     results = list(c)
-    assert len(results) == 1, "Bad insert or uniqueness constraint?"
-    assert len(results[0]) == 1, "Wrong number of columns returned."
+    enforce(len(results) == 1, "Bad insert or uniqueness constraint?")
+    enforce(len(results[0]) == 1, "Wrong number of columns returned.")
     
     return results[0][0]
 
@@ -193,8 +195,8 @@ def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
                    values)
     
     results = list(c)
-    assert len(results) == 1, "Bad insert or uniqueness constraint?"
-    assert len(results[0]) == 1, "Wrong number of columns returned."
+    enforce(len(results) == 1, "Bad insert or uniqueness constraint?")
+    enforce(len(results[0]) == 1, "Wrong number of columns returned.")
     
     return results[0][0]
 

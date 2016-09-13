@@ -34,7 +34,7 @@ def lex(file):
         elif _Regex.indented.match(line):
             yield Token(TokenKind.INDENTED_LINE, unindent(line))
         else:
-            assert _Regex.command.match(line), 'Invalid line: {}'.format(line)
+            enforce(_Regex.command.match(line), 'Invalid line: {}'.format(line))
             yield Token(TokenKind.COMMAND_LINE, line)
 
 if __name__ == '__main__':

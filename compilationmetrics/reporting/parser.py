@@ -59,7 +59,7 @@ def _parseTrait(text):
     words = _getWords(text)
     template = 'Need at least a dot, a name, and one arg. '
     template += 'Bad command: "{}" parsed as: {}'
-    assert len(words) >= 3, template.format(text, words)
+    enforce(len(words) >= 3, template.format(text, words))
     # ['.', 'name', 'arg1', 'arg2', ...]
     #     --> Trait('name', ['arg1', 'arg2', ...])
     return Trait(name=words[1], args=words[2:])                                                                         
@@ -108,7 +108,7 @@ State Name             Token  Next State  Note / Action
         elif token.kind == Kind.COMMAND_LINE:
             return self._expectCommand, self._newDef(token.text)
         else: 
-            assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
+            enforce(token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token))
             raise Exception('Unexpected indent at: "{}"'.format(token.text))
 
     def _expectCommand(self, token):
@@ -126,7 +126,7 @@ State Name             Token  Next State  Note / Action
             self.currentDef.traits.append(_parseTrait(token.text))
             return self._expectCommand, None
         else: 
-            assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
+            enforce(token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token))
             raise Exception('Unexpected indent at: "{}"'.format(token.text))
 
     def _expectDefinitionOrSql(self, token):
@@ -143,7 +143,7 @@ State Name             Token  Next State  Note / Action
         elif token.kind == Kind.COMMAND_LINE:
             return self._expectCommand, self._newDef(token.text)
         else: 
-            assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
+            enforce(token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token))
             self.currentDef.sqlBlock = [token.text]
             return self._expectSql, None
 
@@ -162,7 +162,7 @@ State Name             Token  Next State  Note / Action
             raise Exception('Need an empty line between indented section and '
                             'unindented section at: {}'.format(token))
         else: 
-            assert token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token)
+            enforce(token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token))
             self.currentDef.sqlBlock.append(token.text)
             return self._expectSql, None
 

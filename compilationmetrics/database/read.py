@@ -1,43 +1,10 @@
 
-'''
-A Quierier object maintains a connection with the database and a view(s).
-A 'Query' is a {sql, restriction} where
-a 'Restriction' is a {start, end, system, ...}
-should I bother making it generic? 
-Restriction could be a set of inner joins and constraints,
-but I'd have to know which keys correspond to which, tables, etc. 
-Not worth the trouble, but it could be that the tables are represented
-first in python, so that both the table creator and the view creator
-can use that information, e.g.
-
-machine = Table('Machine',
-                Key=keys.random,
-                Name=str,
-                System=str,
-                ...)
-
-compilation = Table('Compilation',
-                    key=keys.random,
-                    MachineKey=keys.foreign('Machine', 'Key'),
-                    ...)
-etc.
-
-But why bother? Instead, I'll hard-code which sorts of constraints are
-supported, and this module will have magical (implicit) knowlege of the SQL
-tables.
-
-Instead, let's do a plain old Restriction.
-
-The interface of this module will be one function: query(plot).
-It's a generator that, given a Plot object, yields tuples of result records.
-It creates a view based on the query, and drops the view when all of the
-result records have been yielded. I suppose it will open a separate Connection
-each time, too. My measurements show that it takes less than a millisecond
-when the database is on the same file system as the script.
-
-'''
-
 from __future__ import print_function
+
+# Provides a generator 'query' that manages a connection with a sqlite3
+# database file and runs its SQL query argument in an environment having
+# a view (virtual read-only table) for convenience.
+
 from open import connect
 from contextlib import contextmanager
 

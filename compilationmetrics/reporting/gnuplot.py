@@ -19,7 +19,7 @@ def stringify(value):
 
 class Gnuplot(object):
     def __init__(self):
-        assert hasGnuplot, "Can't find gnuplot."
+        enforce(hasGnuplot, "Can't find gnuplot.")
         self._devnull = open(os.devnull, 'wb')
         self._subprocess = subprocess.Popen(['gnuplot'],
                                             stdin=subprocess.PIPE,

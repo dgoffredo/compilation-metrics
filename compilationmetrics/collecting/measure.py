@@ -7,6 +7,8 @@ from __future__ import print_function
 # measure only once, and that you must do so before having created any
 # child processes.
 
+from ..enforce import enforce
+
 import resource
 import subprocess
 import time
@@ -32,7 +34,7 @@ def childrenUsage():
 #
 def call(command):
     before = childrenUsage()
-    assert all(val == 0 for val in before.itervalues()), 'Not your first child.'
+    enforce(all(val == 0 for val in before.itervalues()), 'Not your first child.')
 
     start = utcnow()
     rc = subprocess.call(command)

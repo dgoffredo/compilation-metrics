@@ -1,6 +1,8 @@
 
 from __future__ import print_function
 
+from ..enforce import enforce
+
 import subprocess
 import os
 from distutils.spawn import find_executable
@@ -29,13 +31,13 @@ def inAnyRepo(filePath):
 
 def getHeadRevision(filePath):
     rc, output = _callInDirOf(filePath, ['git', 'rev-parse', 'HEAD'])
-    assert rc == 0, "Can't get revision. Is {} in a git repo?".format(filePath)
+    enforce(rc == 0, "Can't get revision. Is {} in a git repo?".format(filePath))
     return output
 
 def diffHead(filePath):
     rc, output = _callInDirOf(filePath, 
                               ['git', 'diff', os.path.basename(filePath)])
-    assert rc == 0, "Can't diff file. Is {} in a git repo?".format(filePath)
+    enforce(rc == 0, "Can't diff file. Is {} in a git repo?".format(filePath))
     return output
 
 if __name__ == '__main__':

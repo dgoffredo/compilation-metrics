@@ -27,14 +27,14 @@ def _renderHtml(source, destination):
                             stdout=destination)
 
 def toHtml(sourceFileOrPath, destinationFileOrPath):
-    assert hasPerl(), 'Markdown rendering requires perl.'
+    enforce(hasPerl(), 'Markdown rendering requires perl.')
     with _openedFile(sourceFileOrPath) as source:
         with _openedFile(destinationFileOrPath) as destination:
             _renderHtml(source, destination)
 
 if __name__ == '__main__':
     from sys import argv, stdin, stdout
-    assert len(argv) <= 2, 'Specify zero or one input file.'
+    enforce(len(argv) <= 2, 'Specify zero or one input file.')
     
     if len(argv) == 2:
         toHtml(argv[1], stdout)

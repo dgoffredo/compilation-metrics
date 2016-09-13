@@ -1,6 +1,8 @@
 
 from __future__ import print_function
 
+from ..enforce import enforce
+
 import os
 from distutils.spawn import find_executable
 
@@ -15,19 +17,19 @@ class Command(list):
         flag = '-o'
         args = [(i, arg) for i, arg in enumerate(reversed(self)) \
                          if arg.startswith(flag)]
-        assert len(args) > 0, 'There are no output-looking arguments.'
+        enforce(len(args) > 0, 'There are no output-looking arguments.')
         
         i, arg = args[0]
         if arg == flag:
             # The object name follows the arg.
-            assert i != 0, 'The last argument is "{}".'.format(flag)
+            enforce(i != 0, 'The last argument is "{}".'.format(flag))
             return self[-i]
         else:
             # The object name is combined with the arg.
             return arg[len(flag):]
 
     def sourcePath(self):
-        assert len(self) > 1, 'Command must have at least two parts.'
+        enforce(len(self) > 1, 'Command must have at least two parts.')
         return os.path.abspath(self[-1])
         # TODO gcc (at least certain versions) allows for flags to be
         #      specified after the file name, e.g.
@@ -36,7 +38,7 @@ class Command(list):
         #      compile, if there is a file to compile at all.
 
     def compilerPath(self):
-        assert len(self) > 0, 'Command is empty.'
+        enforce(len(self) > 0, 'Command is empty.')
         return find_executable(self[0])
 
     def info(self):

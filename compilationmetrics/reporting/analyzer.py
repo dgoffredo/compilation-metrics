@@ -1,6 +1,7 @@
 
 from __future__ import print_function
 
+from ..enforce import enforce
 import iso8601
 
 # TODO Document
@@ -47,17 +48,17 @@ def analyzeDefinitions(definitionGenerator):
 
 def defineQuery(definition):
     firstTrait = definition.traits[0]
-    assert len(definition.traits) == 1, '"define-query" cannot have traits.' 
-    assert definition.sqlBlock is not None, '"define-query" must have SQL.'
-    assert len(firstTrait.args) == 1, '"define-query" must have a name only.'
+    enforce(len(definition.traits) == 1, '"define-query" cannot have traits.' )
+    enforce(definition.sqlBlock is not None, '"define-query" must have SQL.')
+    enforce(len(firstTrait.args) == 1, '"define-query" must have a name only.')
     queryName = firstTrait.args[0]
     sql = ''.join(definition.sqlBlock)
     return queryName, sql
 
 def definePlot(definition, queries):
     firstTrait = definition.traits[0]
-    assert firstTrait.name == 'define-plot', 'Bad definition "{}"'.format(firstTrait.name)
-    assert len(firstTrait.args) == 1, '"define-plot" must have a name only.'
+    enforce(firstTrait.name == 'define-plot', 'Bad definition "{}"'.format(firstTrait.name))
+    enforce(len(firstTrait.args) == 1, '"define-plot" must have a name only.')
     imageName = firstTrait.args[0]
     traits = definition.traits[1:]
     plot = Plot(imageName)
@@ -66,33 +67,33 @@ def definePlot(definition, queries):
         plot.query = ''.join(definition.sqlBlock)
 
     def setQuery(trait):
-        assert len(trait.args) == 1, 'A query reference needs (only) a name.'
+        enforce(len(trait.args) == 1, 'A query reference needs (only) a name.')
         sqlDuped = definition.sqlBlock is not None
-        assert not sqlDuped, 'Both a "query" trait and a SQL block were specified.'
+        enforce(not sqlDuped, 'Both a "query" trait and a SQL block were specified.')
         queryName = trait.args[0]
-        assert plot.query is None, 'query specified more than once.'
+        enforce(plot.query is None, 'query specified more than once.')
         query = queries.get(queryName)
-        assert query, 'Unknown query for name "{}"'.format(queryName)
+        enforce(query, 'Unknown query for name "{}"'.format(queryName))
         plot.query = query
 
     def setStyle(trait):
-        assert len(trait.args) == 1, 'A style needs (only) a name.'
+        enforce(len(trait.args) == 1, 'A style needs (only) a name.')
         style = trait.args[0]
         whiteset = {'bars', 'line'}
-        assert style in whiteset, 'Unknown style "{}"'.format(style)
+        enforce(style in whiteset, 'Unknown style "{}"'.format(style))
         plot.style = style
 
     def setPeriod(trait):
-        assert len(trait.args) == 2, 'A period needs two datetime arguments.'
+        enforce(len(trait.args) == 2, 'A period needs two datetime arguments.')
         args = trait.args
         parse = iso8601.parse
         begin, end = parse(args[0]), parse(args[1])
-        assert begin < end, 'The datetime range must be positive and nonempty.'
+        enforce(begin < end, 'The datetime range must be positive and nonempty.')
         plot.period = begin, end
 
     def setAttribute(attribute, constructor):
         def setter(trait):
-            assert len(trait.args) == 1, 'A {} specifier needs only one argument.'.format(attribute)
+            enforce(len(trait.args) == 1, 'A {} specifier needs only one argument.'.format(attribute))
             setattr(plot, attribute, constructor(trait.args[0]))
         return setter
 
@@ -112,19 +113,19 @@ def definePlot(definition, queries):
     for trait in traits:
         name = trait.name
         handler = traitHandlers.get(name)
-        assert handler is not None, 'Unknown trait "{}"'.format(name)
+        enforce(handler is not None, 'Unknown trait "{}"'.format(name))
         handler(trait)
 
     return plot
 
 def analyzeDefinition(definition, queries):
-    assert len(definition.traits) != 0, 'Must have at least one trait.'
+    enforce(len(definition.traits) != 0, 'Must have at least one trait.')
     firstTrait = definition.traits[0]
-    assert len(firstTrait.args) != 0, '"define" trait must have an argument.'
+    enforce(len(firstTrait.args) != 0, '"define" trait must have an argument.')
 
     if firstTrait.name == 'define-query':
         queryName, sql = defineQuery(definition)
-        assert queryName not in queries, 'Duplicate query name "{}"'.format(queryName)
+        enforce(queryName not in queries, 'Duplicate query name "{}"'.format(queryName))
         queries[queryName] = sql
         return queries, None # No plot
     else:
