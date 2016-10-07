@@ -64,7 +64,7 @@ def collect(args):
 
     try:
         doMetrics(cmd, start, durationSeconds, resources)
-        # TODO: It ought not to be a repotable error if the Command doesn't
+        # TODO: It ought not to be a reportable error if the Command doesn't
         #       have the info we want. Reportable errors should be things like
         #       the database not being available, etc.
     except Exception as error:
