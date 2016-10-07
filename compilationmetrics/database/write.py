@@ -6,6 +6,7 @@ from ..enforce import enforce
 import sys
 import uuid
 import sqlite3
+import datetime
 
 #
 # The arguments sourceFileInfo, machineInfo, and resourceInfo are dicts:
@@ -15,7 +16,7 @@ import sqlite3
 # machineInfo keys: ['name', 'system', 'release', 'version', 'machineArch',
 #                    'processor, 'pageSize']
 #
-# resourceInfo keys: ['maxResidentMemoryBytes', 'userCpuTime', 
+# resourceInfo keys: ['maxResidentMemoryBytes', 'userCpuTime',
 #                     'systemCpuTime', 'blockingInputOperations',
 #                     'blockingOutputOperations']
 #
@@ -35,7 +36,7 @@ def createEntry(db, user, startDatetime, durationSeconds, outputObjectSizeBytes,
 def _addArguments(db, compilationKey, command):
     db.executemany("insert into Argument(CompilationKey, Position, Value) "
                    "values(?, ?, ?);",
-                   ((compilationKey, i, arg) for i, arg in enumerate(command))) 
+                   ((compilationKey, i, arg) for i, arg in enumerate(command)))
 
 def _insert(db, table, columnToValue):
     template = "insert into {table}({cols}) values({placeholders});"
@@ -55,6 +56,8 @@ def _addCompilation(db, user, startDatetime, durationSeconds,
                     outputObjectSizeBytes, fileKey, machineKey, compilerPath,
                     maxResidentMemoryBytes, userCpuTime, systemCpuTime,
                     blockingInputOperations, blockingOutputOperations):
+    if isinstance(startDatetime, datetime.datetime):
+        startDatetime = startDatetime.isoformat()
     maxAttempts = 5
     for _ in range(maxAttempts):
         key = uuid.uuid4().hex
@@ -91,11 +94,11 @@ def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
 
     c = db.execute(template.format(keyCol=keyColumn, table=table, pred=pred),
                    values)
-    
+
     results = list(c)
     enforce(len(results) == 1, "Bad insert or uniqueness constraint?")
     enforce(len(results[0]) == 1, "Wrong number of columns returned.")
-    
+
     return results[0][0]
 
 def _addSourceFile(db, name, path, gitRevision, gitDiffHead):
@@ -106,7 +109,7 @@ def _addSourceFile(db, name, path, gitRevision, gitDiffHead):
 
 def _addMachine(db, name, system, release, version, machineArch, processor,
                 pageSize):
-    columns = ['Name', 'System', 'Release', 'Version', 'MachineArch', 
+    columns = ['Name', 'System', 'Release', 'Version', 'MachineArch',
                'Processor', 'PageSize']
     values = (name, system, release, version, machineArch, processor, pageSize)
 
@@ -117,7 +120,7 @@ def _addMachine(db, name, system, release, version, machineArch, processor,
 # machineInfo keys: ['name', 'system', 'release', 'version', 'machineArch',
 #                    'processor, 'pageSize']
 #
-# resourceInfo keys: ['maxResidentMemoryBytes', 'userCpuTime', 
+# resourceInfo keys: ['maxResidentMemoryBytes', 'userCpuTime',
 #                     'systemCpuTime', 'blockingInputOperations',
 #                     'blockingOutputOperations']
 #
@@ -137,7 +140,7 @@ def createEntry(db, user, startDatetime, durationSeconds, outputObjectSizeBytes,
 def _addArguments(db, compilationKey, command):
     db.executemany("insert into Argument(CompilationKey, Position, Value) "
                    "values(?, ?, ?);",
-                   ((compilationKey, i, arg) for i, arg in enumerate(command))) 
+                   ((compilationKey, i, arg) for i, arg in enumerate(command)))
 
 def _insert(db, table, columnToValue):
     template = "insert into {table}({cols}) values({placeholders});"
@@ -157,13 +160,15 @@ def _addCompilation(db, user, startDatetime, durationSeconds,
                     outputObjectSizeBytes, fileKey, machineKey, compilerPath,
                     maxResidentMemoryBytes, userCpuTime, systemCpuTime,
                     blockingInputOperations, blockingOutputOperations):
+    if isinstance(startDatetime, datetime.datetime):
+        startDatetime = startDatetime.isoformat()
     maxAttempts = 5
     for _ in range(maxAttempts):
         key = uuid.uuid4().hex
         if _didInsert(db, 'Compilation', {
             'Key':                      key,
             'User':                     user,
-            'StartIso8601':             startDatetime.isoformat(),
+            'StartIso8601':             startDatetime,
             'DurationSeconds':          durationSeconds,
             'OutputObjectSizeBytes':    outputObjectSizeBytes,
             'FileKey':                  fileKey,
@@ -193,11 +198,11 @@ def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
 
     c = db.execute(template.format(keyCol=keyColumn, table=table, pred=pred),
                    values)
-    
+
     results = list(c)
     enforce(len(results) == 1, "Bad insert or uniqueness constraint?")
     enforce(len(results[0]) == 1, "Wrong number of columns returned.")
-    
+
     return results[0][0]
 
 def _addSourceFile(db, name, path, gitRevision, gitDiffHead):
@@ -208,7 +213,7 @@ def _addSourceFile(db, name, path, gitRevision, gitDiffHead):
 
 def _addMachine(db, name, system, release, version, machineArch, processor,
                 pageSize):
-    columns = ['Name', 'System', 'Release', 'Version', 'MachineArch', 
+    columns = ['Name', 'System', 'Release', 'Version', 'MachineArch',
                'Processor', 'PageSize']
     values = (name, system, release, version, machineArch, processor, pageSize)
 

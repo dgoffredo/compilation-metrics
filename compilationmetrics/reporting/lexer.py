@@ -2,6 +2,8 @@
 from __future__ import print_function
 import re
 
+from ..enforce import enforce
+
 class TokenKind:
     EMPTY_LINE = 'EMPTY_LINE'
     COMMAND_LINE = 'COMMAND_LINE'

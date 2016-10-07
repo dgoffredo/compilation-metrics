@@ -3,6 +3,7 @@ from distutils.spawn import find_executable
 from contextlib import contextmanager
 import subprocess
 import os.path
+from ..enforce import enforce
 
 def hasPerl():
     return find_executable('perl') is not None

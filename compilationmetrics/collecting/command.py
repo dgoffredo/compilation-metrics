@@ -13,12 +13,18 @@ class Command(list):
     def __init__(self, *args, **kwargs):
         list.__init__(self, *args, **kwargs)
 
+    def getPaths(self):
+        try:
+            return self.sourcePath(), self.outputPath(), self.compilerPath(), None
+        except Exception as error:
+            return None, None, None, error
+
     def outputPath(self):
         flag = '-o'
         args = [(i, arg) for i, arg in enumerate(reversed(self)) \
                          if arg.startswith(flag)]
         enforce(len(args) > 0, 'There are no output-looking arguments.')
-        
+
         i, arg = args[0]
         if arg == flag:
             # The object name follows the arg.
@@ -47,7 +53,7 @@ class Command(list):
             'outputPath': self.outputPath(),
             'sourcePath': self.sourcePath()
         }
-        
+
 if __name__ == '__main__':
     import sys
     print(Command(sys.argv[1:]).info())

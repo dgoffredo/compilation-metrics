@@ -2,6 +2,7 @@
 
 from contextlib import contextmanager
 import gnuplot
+from ..enforce import enforce
 import json
 import os.path
 import tempfile

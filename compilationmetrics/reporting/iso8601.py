@@ -35,6 +35,7 @@
 #
 
 import datetime, time, re
+from ..enforce import enforce
 
 # utcDatetime + currentOffset() == localDatetime
 #

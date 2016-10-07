@@ -5,13 +5,14 @@ import command
 import git
 import measure
 
-import sys 
+import sys
 import platform
 import resource
 import os
 import getpass
+import traceback
 
-def machineInfo():
+def _machineInfo():
     uname = platform.uname()
     return {
         'system': uname[0],
@@ -23,11 +24,32 @@ def machineInfo():
         'pageSize': resource.getpagesize()
     }
 
-def doMetrics(cmd, start, durationSeconds, resources):
-    sourcePath = cmd.sourcePath()
+def _writeToDatabaseImpl(user, startDatetime, durationSeconds, outputSizeBytes,
+                        sourceInfo, machineInfo, resources, compilerPath,
+                        command):
+    # Delay importing 'database.write', because it imports 'uuid', which forks
+    # the process, which throws off the "children" resource consumption
+    # measurements. At this point, though, we're done measuring, so another
+    # fork is fine.
+    #
+    from ..database.open import connect
+    from ..database.write import createEntry
+
+    db = connect()
+    createEntry(db, user, startDatetime, durationSeconds,
+                outputSizeBytes, sourceInfo, machineInfo, resources,
+                compilerPath, command)
+
+def writeToDatabase(request):
+    return _writeToDatabaseImpl(**request)
+
+def _doMetrics(cmd, start, durationSeconds, resources, callback):
+    sourcePath, outputPath, compilerPath, error = cmd.getPaths()
+    if error:
+        return # TODO: In verbose mode, display why.
+
     source = os.path.basename(sourcePath)
-    outputSize = os.path.getsize(cmd.outputPath())
-    compilerPath = cmd.compilerPath()
+    outputSize = os.path.getsize(outputPath)
 
     if git.hasGit() and git.inAnyRepo(sourcePath):
         revision = git.getHeadRevision(sourcePath)
@@ -43,40 +65,43 @@ def doMetrics(cmd, start, durationSeconds, resources):
         'gitDiffHead': diff
     }
 
-    # Delay importing 'database.write', because it imports 'uuid', which forks
-    # the process, which throws off the "children" resource consumption
-    # measurements. At this point, though, we're done measuring, so another
-    # fork is fine.
-    #
-    from ..database.open import connect
-    from ..database.write import createEntry
+    request = {
+        'user': getpass.getuser(),
+        'startDatetime': start.isoformat(),
+        'durationSeconds': durationSeconds,
+        'outputSizeBytes': outputSize,
+        'sourceInfo': sourceInfo,
+        'machineInfo': _machineInfo(),
+        'resources': resources,
+        'compilerPath': compilerPath,
+        'command': cmd
+    }
 
-    db = connect()
-    createEntry(db, getpass.getuser(), start, durationSeconds,
-                outputSize, sourceInfo, machineInfo(), resources,
-                compilerPath, cmd)
+    callback(request)
 
-def collect(args):
+def collect(args, callback=writeToDatabase):
     cmd = command.Command(args)
+    if len(cmd) == 0:
+        return 0 # Nothing to do
+
     rc, start, durationSeconds, resources = measure.call(cmd)
     if rc != 0:
         return rc # Compilation failed, so there's nothing to do.
 
     try:
-        doMetrics(cmd, start, durationSeconds, resources)
+        _doMetrics(cmd, start, durationSeconds, resources, callback)
         # TODO: It ought not to be a reportable error if the Command doesn't
         #       have the info we want. Reportable errors should be things like
         #       the database not being available, etc.
-    except Exception as error:
-        print('An Exception occurred while doing metrics:', error,
-              file=sys.stderr)
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
 
     # Always return the result of 'measure.call', so that even if recording
     # compilation metrics fails, this script continues to act as a pass-though
     # to the compiler.
     #
     return rc
-              
+
 if __name__ == '__main__':
     sys.exit(collect(sys.argv[1:]))
 
