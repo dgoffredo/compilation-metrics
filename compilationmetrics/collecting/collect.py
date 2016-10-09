@@ -79,7 +79,7 @@ def _doMetrics(cmd, start, durationSeconds, resources, callback):
 
     callback(request)
 
-def collect(args, callback=writeToDatabase):
+def collect(args, callback=writeToDatabase, debug=False):
     cmd = command.Command(args)
     if len(cmd) == 0:
         return 0 # Nothing to do
@@ -90,11 +90,9 @@ def collect(args, callback=writeToDatabase):
 
     try:
         _doMetrics(cmd, start, durationSeconds, resources, callback)
-        # TODO: It ought not to be a reportable error if the Command doesn't
-        #       have the info we want. Reportable errors should be things like
-        #       the database not being available, etc.
     except Exception:
-        traceback.print_exc(file=sys.stderr)
+        if debug:
+            traceback.print_exc(file=sys.stderr)
 
     # Always return the result of 'measure.call', so that even if recording
     # compilation metrics fails, this script continues to act as a pass-though

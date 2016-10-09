@@ -9,6 +9,6 @@ if sys.argv.get(1) == '--debug':
         print(json.dumps(request, indent=4))
         return collect.writeToDatabase(request)
 
-    sys.exit(collect.collect(sys.argv[2:], callback=handleMetrics))
+    sys.exit(collect.collect(sys.argv[2:], callback=handleMetrics, debug=True))
 else:
     sys.exit(collect.collect(sys.argv[1:]))
