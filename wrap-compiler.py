@@ -2,7 +2,7 @@
 from compilationmetrics.collecting import collect
 import sys
 
-if sys.argv.get(1) == '--debug':
+if len(sys.argv) > 1 and sys.argv[1] == '--debug':
     import json
 
     def handleMetrics(request):
