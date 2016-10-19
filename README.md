@@ -11,7 +11,7 @@ Compilation Metrics has two components:
 ## Dependencies
 Compilation Metrics is written in python. One goal of the project is to have
 as few dependencies as possible, so that it can be used as a drop-in 
-replacement for the compiler in most build environments.
+replacement for the compiler in most Unix-like build environments.
 
 Collecting statistics has the following dependencies:
 * unix/linux
