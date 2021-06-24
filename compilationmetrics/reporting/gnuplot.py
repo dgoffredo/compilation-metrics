@@ -5,13 +5,15 @@ import subprocess
 import os
 import json
 
+from ..enforce import enforce
+
 def hasGnuplot():
     return find_executable('gnuplot') is not None
 
 # Prepare for sending to gnuplot as data. Print as-is, except for strings,
 # which are quoted and escaped.
 def stringify(value):
-    if isinstance(value, basestring):
+    if isinstance(value, str):
         # quoted and escaped string
         return json.dumps(value)
     else:
@@ -27,9 +29,9 @@ class Gnuplot(object):
         self._stdin = self._subprocess.stdin
 
     def writeLine(self, text):
-        self._stdin.write(text)
+        self._stdin.write(text.encode('utf8'))
         if text[-1] != '\n':
-            self._stdin.write('\n')
+            self._stdin.write(b'\n')
 
     def send(self, *lines):
         for line in lines:

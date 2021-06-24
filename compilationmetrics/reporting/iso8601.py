@@ -133,7 +133,7 @@ def _makeDatetime(match):
 #
 def _makeTimedelta(match):
     parts = { name: float(value) \
-              for name, value in match.groupdict().iteritems() \
+              for name, value in match.groupdict().items() \
               if value is not None}
     
     # Years and months don't exist in datetime.timedelta's constructor,

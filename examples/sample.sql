@@ -1,3 +1,15 @@
+.define-plot 'preprocessed-size.png'
+.width 800
+.height 600
+.xAxisLabel 'Name of File Preprocessed'
+.yAxisLabel 'Source Size After Preprocessor (Mebibytes)'
+
+    select FileName, FilePreprocessedSizeBytes / 1024.0 / 1024.0 as SizeMib
+    from CompilationView
+    group by FileName
+    order by FilePreprocessedSizeBytes desc
+    limit 25;
+
 .define-plot 'duration-linux.png'
 .width 800
 .height 600
@@ -9,6 +21,19 @@
     where System = 'Linux'
     group by FileName
     order by AvgDuration desc
+    limit 25;
+
+.define-plot 'duration-per-line-linux.png'
+.width 800
+.height 600
+.xAxisLabel 'Name of File Compiled'
+.yAxisLabel 'Average Duration Per Line (milliseconds)'
+
+    select FileName, avg(DurationSeconds / FileLineCount) * 1000 as AvgDurationPerLine
+    from CompilationView
+    where System = 'Linux'
+    group by FileName
+    order by AvgDurationPerLine desc
     limit 25;
 
 .define-query 'memory'
@@ -25,7 +50,6 @@
 .height 600
 .query 'memory'
 .system 'Linux'
-.period '2015-02-03' '2017-02-04'
 .xAxisLabel 'File Compiled'
 .yAxisLabel 'Average Memory Consumed (mibibytes)'
 

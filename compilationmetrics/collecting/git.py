@@ -16,6 +16,7 @@ def _dirOf(filePath):
 def _callInDirOf(filePath, command):
     with open(os.devnull, 'wb') as devnull:
         process = subprocess.Popen(command,
+                                   encoding='utf8',
                                    cwd=_dirOf(filePath),
                                    stdout=subprocess.PIPE,
                                    stderr=devnull)

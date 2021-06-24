@@ -34,7 +34,7 @@ def childrenUsage():
 #
 def call(command):
     before = childrenUsage()
-    enforce(all(val == 0 for val in before.itervalues()), 'Not your first child.')
+    enforce(all(val == 0 for val in before.values()), 'Not your first child.')
 
     start = utcnow()
     rc = subprocess.call(command)

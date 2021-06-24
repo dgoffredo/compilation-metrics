@@ -10,11 +10,11 @@ def hasPerl():
 
 @contextmanager
 def _openedFile(fileOrPath):
-    if isinstance(fileOrPath, basestring):
+    if hasattr(fileOrPath, 'close'):
+        yield fileOrPath # Assume we already have a file.
+    else:
         with open(fileOrPath) as file:
             yield file
-    else:
-        yield fileOrPath # Assume we already have a file.
 
 def _moduleDirectory():
     return os.path.dirname(os.path.realpath(__file__))

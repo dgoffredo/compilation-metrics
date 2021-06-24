@@ -5,7 +5,7 @@ import os
 import sqlite3
 import datetime
 
-import tables
+from . import tables
 
 sqlite3.register_adapter(datetime.datetime, datetime.datetime.isoformat)
 

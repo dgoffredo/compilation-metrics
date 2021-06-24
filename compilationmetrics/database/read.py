@@ -5,7 +5,7 @@ from __future__ import print_function
 # database file and runs its SQL query argument in an environment having
 # a view (virtual read-only table) for convenience.
 
-from open import connect
+from .open import connect
 from contextlib import contextmanager
 
 def _createVariablesTempTable(db, name, variables):
@@ -66,6 +66,9 @@ select
        /* Some fields from the joined-in tables */
      , File.Name                                          as FileName
      , File.Path                                          as FilePath
+     , File.LineCount                                     as FileLineCount
+     , File.PreprocessedSizeBytes                         as FilePreprocessedSizeBytes
+     , File.PreprocessedLineCount                         as FilePreprocessedLineCount
      , Machine.Name                                       as MachineName
      , Machine.System                                     as MachineSystem
 

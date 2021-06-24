@@ -1,14 +1,14 @@
 
 
 from contextlib import contextmanager
-import gnuplot
+from . import gnuplot
 from ..enforce import enforce
 import json
 import os.path
 import tempfile
 
 def _doubleQuote(s):
-    s = s if isinstance(s, basestring) else str(s)
+    s = s if isinstance(s, str) else str(s)
     return json.dumps(s)
 
 def _rotate(plot, imageFolder, gp):
@@ -112,7 +112,7 @@ def _boilerplate(plot, imageFolder):
 
     template = '\n'.join([
         "reset",
-        "set terminal pngcairo size {width}, {height} nocrop",
+        "set terminal pngcairo size {width}, {height} nocrop noenhanced",
         "set output {name}"
     ]) + '\n'
 

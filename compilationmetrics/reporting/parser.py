@@ -38,7 +38,7 @@ State Name             Token  Next State  Note / Action
                        $      Success     The last def's SQL just ended
 '''
 
-import lexer
+from . import lexer
 Kind = lexer.TokenKind
 
 import shlex

@@ -1,13 +1,14 @@
 
 from __future__ import print_function
 
-import command
-import git
-import measure
+from . import command
+from . import git
+from . import measure
 
 import sys
 import platform
 import resource
+import subprocess
 import os
 import getpass
 import traceback
@@ -43,13 +44,39 @@ def _writeToDatabaseImpl(user, startDatetime, durationSeconds, outputSizeBytes,
 def writeToDatabase(request):
     return _writeToDatabaseImpl(**request)
 
+def _lineCount(path):
+    with open(path) as file:
+        return sum(1 for line in file)
+
+def _preprocessSource(cmd):
+    # Strip away the "-c" flag (meaning "compile it") and the "-o" flag
+    # (meaning "output file").  Use all of the other command arguments,
+    # together with "-E", to have the compiler print the preprocessed source to
+    # standard output.  Then capture that output and calculate the number of
+    # lines and bytes.
+    cmd = cmd.withoutOutputPath().without('-c').withFlag('-E')
+    sp = subprocess
+    child = sp.Popen(cmd, stdin=sp.DEVNULL, stdout=sp.PIPE, stderr=sp.DEVNULL)
+    sizeBytes = 0
+    lineCount = 0
+    while True:
+        line = child.stdout.readline()
+        if not line:
+            child.wait()
+            return sizeBytes, lineCount
+        sizeBytes += len(line)
+        lineCount += 1
+
 def _doMetrics(cmd, start, durationSeconds, resources, callback):
     sourcePath, outputPath, compilerPath, error = cmd.getPaths()
     if error:
         return # TODO: In verbose mode, display why.
 
     source = os.path.basename(sourcePath)
+    sourceLineCount = _lineCount(sourcePath)
+    sourceSize = os.path.getsize(sourcePath)
     outputSize = os.path.getsize(outputPath)
+    preprocessedSourceSize, preprocessedSourceLineCount = _preprocessSource(cmd)
 
     if git.hasGit() and git.inAnyRepo(sourcePath):
         revision = git.getHeadRevision(sourcePath)
@@ -59,10 +86,15 @@ def _doMetrics(cmd, start, durationSeconds, resources, callback):
         diff = ''
 
     sourceInfo = {
+        # TODO: name relative to git repo root
         'name': source,
         'path': sourcePath,
         'gitRevision': revision,
-        'gitDiffHead': diff
+        'gitDiffHead': diff,
+        'lineCount': sourceLineCount,
+        'sizeBytes': sourceSize,
+        'preprocessedSizeBytes': preprocessedSourceSize,
+        'preprocessedLineCount': preprocessedSourceLineCount
     }
 
     request = {

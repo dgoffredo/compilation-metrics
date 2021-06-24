@@ -9,8 +9,12 @@ File(
     Path        text not null,
     GitRevision text not null, /* empty string if not available */
     GitDiffHead text not null,
+    LineCount integer,
+    SizeBytes integer,
+    PreprocessedSizeBytes integer,
+    PreprocessedLineCount integer,
 
-    unique(Name, Path, GitRevision, GitDiffHead)
+    unique(Name, Path, GitRevision, GitDiffHead, SizeBytes)
 );'''
 
 machineDef = '''
@@ -62,6 +66,7 @@ definitions = [fileDef, machineDef, compilationDef, argumentDef]
 def createAll(db):
     for table in definitions:
         db.execute(table)
+    db.commit()
 
 if __name__ == '__main__':
     import sys

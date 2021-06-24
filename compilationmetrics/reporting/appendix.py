@@ -8,7 +8,7 @@ from ..enforce import enforce
 
 from contextlib import contextmanager
 import os.path
-import cgi
+import html
 import shutil
 import datetime
 
@@ -29,12 +29,11 @@ def _datetimeRangeToString(value):
 def _escape(s):
     if _isDatetimeRange(s):
         s = _datetimeRangeToString(s)
-    elif not isinstance(s, basestring):
+    elif not isinstance(s, str):
         s = str(s)
 
-    # cgi.escape does angle brackets, ampersands, and double quotes.
-    # The 'replace' method does single quotes.
-    return cgi.escape(s, quote=True).replace("'", "&#39;")
+    # html.escape does angle brackets, ampersands, double quotes, and single quotes.
+    return html.escape(s, quote=True)
 
 def _addRecord(row, write):
     write('<tr>\n')
@@ -98,7 +97,7 @@ def _beginPlot(plot, imageFolder, write):
     write('<p>\n')
     write('<table>\n')
     write('<tr><th>Attribute</th><th>Value</th></tr>\n')
-    for attr, value in plot.__dict__.iteritems():
+    for attr, value in plot.__dict__.items():
         if attr == 'query':
             continue # The query is printed elsewhere
         write('<tr><td>{}</td><td>{}</td></tr>\n'.format(

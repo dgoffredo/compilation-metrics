@@ -7,3 +7,7 @@
 .*.swo
 .*.swm
 .*.swn
+
+# example artifacts
+/index.html
+/appendix.html

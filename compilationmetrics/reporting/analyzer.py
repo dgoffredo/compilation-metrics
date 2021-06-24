@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 from ..enforce import enforce
-import iso8601
+from . import iso8601
 
 # TODO Document
 
@@ -137,11 +137,11 @@ def analyzeJson(defs):
 
 if __name__ == '__main__':
     import sys
-    from lexer import lex
-    from parser import parse
+    from .lexer import lex
+    from .parser import parse
 
     for plot in analyze(parse(lex(sys.stdin))):
-        for key, value in plot.__dict__.iteritems():
+        for key, value in plot.__dict__.items():
             print('    ', key, '-->', value)    
             
 '''

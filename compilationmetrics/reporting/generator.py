@@ -17,13 +17,13 @@ an "appendix" HTML file.
 [database] ----------------->-----------------+              +--> [appendix]
 '''
 
-import gnuplot
-import appendix
-import plotter
-import markdown
-import lexer
-import parser
-import analyzer
+from . import gnuplot
+from . import appendix
+from . import plotter
+from . import markdown
+from . import lexer
+from . import parser
+from . import analyzer
 from ..database.read import query
 
 import os

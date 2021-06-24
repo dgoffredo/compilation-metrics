@@ -5,7 +5,11 @@
 ## Duration
 
 ### Linux
+[![](images/preprocessed-size.png)](appendix.html#preprocessed-size.png)
+
 [![](images/duration-linux.png)](appendix.html#duration-linux.png)
+
+[![](images/duration-per-line-linux.png)](addendix.html#duration-per-line-linux.png)
 
 ## Memory Consumption
 

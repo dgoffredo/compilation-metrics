@@ -11,7 +11,7 @@ import datetime
 #
 # The arguments sourceFileInfo, machineInfo, and resourceInfo are dicts:
 #
-# sourceFileInfo keys: ['name', 'path', 'gitRevision', 'gitDiffHead']
+# sourceFileInfo keys: ['name', 'path', 'gitRevision', 'gitDiffHead', 'lineCount', 'sizeBytes']
 #
 # machineInfo keys: ['name', 'system', 'release', 'version', 'machineArch',
 #                    'processor, 'pageSize']
@@ -101,9 +101,9 @@ def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
 
     return results[0][0]
 
-def _addSourceFile(db, name, path, gitRevision, gitDiffHead):
-    columns = ['Name', 'Path', 'GitRevision', 'GitDiffHead']
-    values = (name, path, gitRevision, gitDiffHead)
+def _addSourceFile(db, name, path, gitRevision, gitDiffHead, lineCount, sizeBytes, preprocessedSizeBytes, preprocessedLineCount):
+    columns = ['Name', 'Path', 'GitRevision', 'GitDiffHead', 'LineCount', 'SizeBytes', 'PreprocessedSizeBytes', 'PreprocessedLineCount']
+    values = (name, path, gitRevision, gitDiffHead, lineCount, sizeBytes, preprocessedSizeBytes, preprocessedLineCount)
 
     return _addUniqueRecord(db, 'File', columns, values)
 
@@ -146,7 +146,7 @@ def _insert(db, table, columnToValue):
     template = "insert into {table}({cols}) values({placeholders});"
     query = template.format(table=table, cols=', '.join(columnToValue.keys()),
                             placeholders=', '.join('?' for _ in columnToValue))
-    db.execute(query, columnToValue.values())
+    db.execute(query, list(columnToValue.values()))
 
 def _didInsert(db, table, columnToValue):
     try:
@@ -204,12 +204,6 @@ def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
     enforce(len(results[0]) == 1, "Wrong number of columns returned.")
 
     return results[0][0]
-
-def _addSourceFile(db, name, path, gitRevision, gitDiffHead):
-    columns = ['Name', 'Path', 'GitRevision', 'GitDiffHead']
-    values = (name, path, gitRevision, gitDiffHead)
-
-    return _addUniqueRecord(db, 'File', columns, values)
 
 def _addMachine(db, name, system, release, version, machineArch, processor,
                 pageSize):

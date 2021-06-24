@@ -19,6 +19,31 @@ class Command(list):
         except Exception as error:
             return None, None, None, error
 
+    def without(self, arg_to_omit):
+        return Command(arg for arg in self if arg != arg_to_omit)
+
+    def withoutOutputPath(self):
+        flag = '-o'
+        args = [(i, arg) for i, arg in enumerate(reversed(self)) \
+                         if arg.startswith(flag)]
+        if len(args) == 0:
+            return self
+
+        i, arg = args[0]
+        if arg == flag:
+            # The object name follows the arg.
+            enforce(i != 0, 'The last argument is "{}".'.format(flag))
+            return Command(self[:-i-1] + self[-i + 1:])
+        else:
+            # The object name is combined with the arg.
+            return Command(self[:-i-1] + self[-i:])
+        
+    def withFlag(self, flag):
+        args = [self[0]]
+        args.append(flag)
+        args.extend(self[1:])
+        return Command(args)
+
     def outputPath(self):
         flag = '-o'
         args = [(i, arg) for i, arg in enumerate(reversed(self)) \
@@ -42,7 +67,7 @@ class Command(list):
         #          gcc file.c -c -o output.o
         #      Most of the time, though, the last argument is the file to
         #      compile, if there is a file to compile at all.
-
+        
     def compilerPath(self):
         enforce(len(self) > 0, 'Command is empty.')
         return find_executable(self[0])
