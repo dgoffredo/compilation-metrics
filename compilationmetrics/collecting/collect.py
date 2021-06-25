@@ -1,9 +1,10 @@
 
-from __future__ import print_function
 
 from . import command
 from . import git
 from . import measure
+from ..database.open import connect
+from ..database.write import createEntry
 
 import sys
 import platform
@@ -28,14 +29,6 @@ def _machineInfo():
 def _writeToDatabaseImpl(user, startDatetime, durationSeconds, outputSizeBytes,
                         sourceInfo, machineInfo, resources, compilerPath,
                         command):
-    # Delay importing 'database.write', because it imports 'uuid', which forks
-    # the process, which throws off the "children" resource consumption
-    # measurements. At this point, though, we're done measuring, so another
-    # fork is fine.
-    #
-    from ..database.open import connect
-    from ..database.write import createEntry
-
     db = connect()
     createEntry(db, user, startDatetime, durationSeconds,
                 outputSizeBytes, sourceInfo, machineInfo, resources,

@@ -1,5 +1,4 @@
 
-from __future__ import print_function
 
 # Provides a generator 'query' that manages a connection with a sqlite3
 # database file and runs its SQL query argument in an environment having

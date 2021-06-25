@@ -11,3 +11,6 @@
 # example artifacts
 /index.html
 /appendix.html
+
+# build artifacts
+compilationmetrics/collecting/measure

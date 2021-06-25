@@ -1,45 +1,65 @@
-
-from __future__ import print_function
-
-# Measure resources used by a subprocess. This module assumes that the
-# command to be measured will result in the first measurable usage of
-# resources by any child process. This practically means that you can
-# measure only once, and that you must do so before having created any
-# child processes.
+# Measure resources used by a subprocess.
+#
+# This module uses a helper executable, `measure`, expected to be in the same
+# directory as this script.  The repository's `Makefile` compiles the helper.
 
 from ..enforce import enforce
 
-import resource
+import datetime
+import json
+import os
+from pathlib import Path
 import subprocess
 import time
-import datetime
 
 utcnow = datetime.datetime.utcnow
+measure_exe = Path(__file__).resolve().parent/'measure'
 
-# resourceInfo keys: ['maxResidentMemoryBytes', 'userCpuTime', 
-#                     'systemCpuTime', 'blockingInputOperations',
-#                     'blockingOutputOperations']
+def timeval_to_seconds(timeval):
+    sec, usec = timeval['tv_sec'], timeval['tv_usec']
+    return sec + usec / 1000000
 
-def childrenUsage():
-    data = resource.getrusage(resource.RUSAGE_CHILDREN)
+def formatUsage(data):
     return {
-        'userCpuTime': data.ru_utime,
-        'systemCpuTime': data.ru_stime,
-        'maxResidentMemoryBytes': data.ru_maxrss * 1024,
-        'blockingInputOperations': data.ru_inblock,
-        'blockingOutputOperations': data.ru_oublock
+        'userCpuTime': timeval_to_seconds(data['ru_utime']),
+        'systemCpuTime': timeval_to_seconds(data['ru_stime']),
+        'maxResidentMemoryBytes': data['ru_maxrss'] * 1024,
+        'blockingInputOperations': data['ru_inblock'],
+        'blockingOutputOperations': data['ru_oublock']
     }
 
 # Returns (returnCode, startDatetime, wallTimeDurationSeconds, ResourceUsage)
 #
 def call(command):
-    before = childrenUsage()
-    enforce(all(val == 0 for val in before.values()), 'Not your first child.')
+    # Run the command in a wrapper (`measure_exe`).  The wrapper takes an
+    # argument naming a file descriptor that it will write the resource usage
+    # to as JSON.
+    #
+    # We give it the write end of a pipe created using `os.pipe()`.  We'll read
+    # from the read end.  We have to include the write end among the file
+    # descriptors to "pass" (i.e. _not_ close) to the child process.
+    #
+    # Also, we have to close _our_ version of the write end of the pipe once
+    # the child process has its version.  This way, when we read from the read
+    # end, the only open writer is the child process's.  Were we to keep ours
+    # open, `.read()` would block indefinitely.
+    #
+    # Once we've read all the data from the pipe and the child process has
+    # terminated, parse the data from JSON and massage it for returning to
+    # the caller (see `formatUsage`).
+    #
+    # Separately, keep track of the total wall time taken by the child process.
 
+    pipe_read_end, pipe_write_end = os.pipe()
+    command = [measure_exe, f'fd://{pipe_write_end}', *command]
     start = utcnow()
-    rc = subprocess.call(command)
+    child = subprocess.Popen(command, pass_fds=(pipe_write_end,))
+    os.close(pipe_write_end) # so that only the child's copy of the fd is open
+    rusage_json = os.fdopen(pipe_read_end).read()
+    rc = child.wait()
     duration = (utcnow() - start).total_seconds()
-    return rc, start, duration, childrenUsage()
+    rusage_dict = json.loads(rusage_json)
+    return rc, start, duration, formatUsage(rusage_dict)
 
 if __name__ == '__main__':
     import sys
