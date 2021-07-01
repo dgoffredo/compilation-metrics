@@ -13,11 +13,13 @@ import subprocess
 import time
 
 utcnow = datetime.datetime.utcnow
-measure_exe = Path(__file__).resolve().parent/'measure'
+measure_exe = Path(__file__).resolve().parent / 'measure'
+
 
 def timeval_to_seconds(timeval):
     sec, usec = timeval['tv_sec'], timeval['tv_usec']
     return sec + usec / 1000000
+
 
 def formatUsage(data):
     return {
@@ -27,6 +29,7 @@ def formatUsage(data):
         'blockingInputOperations': data['ru_inblock'],
         'blockingOutputOperations': data['ru_oublock']
     }
+
 
 # Returns (returnCode, startDatetime, wallTimeDurationSeconds, ResourceUsage)
 #
@@ -53,13 +56,14 @@ def call(command):
     pipe_read_end, pipe_write_end = os.pipe()
     command = [measure_exe, f'fd://{pipe_write_end}', *command]
     start = utcnow()
-    child = subprocess.Popen(command, pass_fds=(pipe_write_end,))
-    os.close(pipe_write_end) # so that only the child's copy of the fd is open
+    child = subprocess.Popen(command, pass_fds=(pipe_write_end, ))
+    os.close(pipe_write_end)  # so that only the child's copy of the fd is open
     rusage_json = os.fdopen(pipe_read_end).read()
     rc = child.wait()
     duration = (utcnow() - start).total_seconds()
     rusage_dict = json.loads(rusage_json)
     return rc, start, duration, formatUsage(rusage_dict)
+
 
 if __name__ == '__main__':
     import sys
@@ -68,7 +72,6 @@ if __name__ == '__main__':
     print('start:', start)
     print('duration:', duration, 'seconds')
     print('usage:', usage)
-
 '''
 Copyright (c) 2016 David Goffredo
 

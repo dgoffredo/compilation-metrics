@@ -1,4 +1,3 @@
-
 # Parses a subset of ISO 8601 (RFC 3339) without needing dateutil or anything.
 # This module uses a regular expression that can parse ISO 8601 datetimes
 # matching, for example:
@@ -37,16 +36,18 @@
 import datetime, time, re
 from ..enforce import enforce
 
+
 # utcDatetime + currentOffset() == localDatetime
 #
 # and so,
 #
 # localDatetime - currentOffset() == utcDatetime
-# 
+#
 def currentOffset():
     nowUnix = time.time()
     dt = datetime.datetime
     return dt.fromtimestamp(nowUnix) - dt.utcfromtimestamp(nowUnix)
+
 
 # Lazy loading of compiled regex
 #
@@ -54,7 +55,7 @@ class LazyRegex(object):
     def __init__(self, pattern):
         self._pattern = pattern
         self._regex = None
-    
+
     def __call__(self):
         if self._regex is None:
             self._regex = re.compile(self._pattern)
@@ -70,8 +71,6 @@ datetimeRegex = LazyRegex(r'^\s*(?P<year>\d\d\d\d)-' + \
                           r'(?P<tz>Z|(?P<tzSign>\+|-)' + \
                           r'(?P<tzHour>\d\d)' + \
                           r'(:(?P<tzMinute>\d\d))?)?\s*$')
-
-
 ''' ISO8601 time durations, from Wikipedia:
        1. PnYnMnDTnHnMnS
        2. PnW
@@ -87,7 +86,8 @@ durationRegex = LazyRegex(r'P((?P<weeks>\d+(\.\d+)?)W|' + \
                           r'((?P<minutes>\d+(\.\d+)?)M)?' + \
                           r'((?P<seconds>\d+(\.\d+)?)S)?' + \
                           r')?)')
-                      
+
+
 # Returns a datetime.datetime instance.
 # If a timezone is not specified, the local timezone is assumed.
 #
@@ -95,12 +95,12 @@ def _makeDatetime(match):
     groups = match.groupdict()
 
     if groups['tz'] is None:
-        offset = currentOffset() # local
+        offset = currentOffset()  # local
     elif groups['tz'].upper() == 'Z':
-        offset = datetime.timedelta() # UTC
+        offset = datetime.timedelta()  # UTC
     else:
         tzSign = -1 if groups['tzSign'] == '-' else 1
-        offset = datetime.timedelta(hours=tzSign*int(groups['tzHour']),
+        offset = datetime.timedelta(hours=tzSign * int(groups['tzHour']),
                                     minutes=int(groups['tzMinute']))
 
     def asInt(name):
@@ -120,11 +120,12 @@ def _makeDatetime(match):
     microsecond = int(round(zeroOr('fraction', float) * 10e6))
 
     d = datetime.datetime(year, month, day, hour, minute, second, microsecond)
-    
+
     # *subtract* the offset so that the representation goes from whatever
     # whatever local time into UTC. The offset is the offset *from* uTC,
     # and so -offset is the offset *to* UTC.
     return d - offset
+
 
 # Note that if 'years' or 'months' exist in the specified 'match', the
 # returned 'datetime.timedelta' will be an approximation of the ISO 8601
@@ -135,7 +136,7 @@ def _makeTimedelta(match):
     parts = { name: float(value) \
               for name, value in match.groupdict().items() \
               if value is not None}
-    
+
     # Years and months don't exist in datetime.timedelta's constructor,
     # so translate them into days so that 'groups' can be expanded as
     # keyword arguments into the returned timedelta's constructor.
@@ -151,6 +152,7 @@ def _makeTimedelta(match):
         del parts['months']
 
     return datetime.timedelta(**parts)
+
 
 # Returns either a datetime.datetime or a datetime.timedelta, depending on
 # the format of the specified 'iso8601String'. For datetimes, uses local time
@@ -170,11 +172,11 @@ def parse(iso8601String):
     if match:
         return _makeTimedelta(match)
 
+
 if __name__ == '__main__':
     import sys
     for line in sys.stdin:
         print(parse(line))
-            
 '''
 Copyright (c) 2016 David Goffredo
 

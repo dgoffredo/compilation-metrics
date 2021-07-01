@@ -1,4 +1,3 @@
-
 # Takes Plot objects and data records and produces HTML output containing
 # the name, image, and configuration of each Plot along with a table of its
 # data values.
@@ -12,8 +11,10 @@ import html
 import shutil
 import datetime
 
+
 def _isDatetime(value):
     return isinstance(value, datetime.datetime)
+
 
 def _isDatetimeRange(value):
     try:
@@ -22,9 +23,11 @@ def _isDatetimeRange(value):
     except:
         return False
 
+
 def _datetimeRangeToString(value):
     begin, end = value
     return '{} to {}'.format(begin.isoformat(), end.isoformat())
+
 
 def _escape(s):
     if _isDatetimeRange(s):
@@ -35,19 +38,23 @@ def _escape(s):
     # html.escape does angle brackets, ampersands, double quotes, and single quotes.
     return html.escape(s, quote=True)
 
+
 def _addRecord(row, write):
     write('<tr>\n')
     for data in row:
         write('<td>{}</td>'.format(_escape(data)))
     write('</tr>\n')
 
+
 def _finishPlot(write, last=False):
     write('</table>\n</p>\n\n')
     if not last:
         write('<hr />')
 
+
 def _ifNone(value, default):
     return default if value is None else value
+
 
 def _beginHtml(write):
     write('''<!DOCTYPE html>
@@ -80,8 +87,10 @@ tr:nth-child(even) {
 <body>
  ''')
 
+
 def _finishHtml(write):
     write('</body>\n</html>\n')
+
 
 def _beginPlot(plot, imageFolder, write):
     # Header with imageName
@@ -99,10 +108,9 @@ def _beginPlot(plot, imageFolder, write):
     write('<tr><th>Attribute</th><th>Value</th></tr>\n')
     for attr, value in plot.__dict__.items():
         if attr == 'query':
-            continue # The query is printed elsewhere
+            continue  # The query is printed elsewhere
         write('<tr><td>{}</td><td>{}</td></tr>\n'.format(
-            _escape(attr), 
-            _escape(_ifNone(value, ''))))
+            _escape(attr), _escape(_ifNone(value, ''))))
     write('</table></p>\n\n')
 
     # Query
@@ -118,11 +126,12 @@ def _beginPlot(plot, imageFolder, write):
     write('<table>\n')
     write('<tr><th>{xTitle}</th><th>{yTitle}</th></tr>\n'.format(
         xTitle=_escape(_ifNone(plot.xAxisLabel, 'X Value')),
-        yTitle=_escape(_ifNone(plot.yAxisLabel, 'Y Value'))
-    ))
+        yTitle=_escape(_ifNone(plot.yAxisLabel, 'Y Value'))))
+
 
 def _scriptDir():
     return os.path.dirname(os.path.realpath(__file__))
+
 
 def installDependencies(rootFolder):
     folder = os.path.join(_scriptDir(), 'highlight')
@@ -133,12 +142,14 @@ def installDependencies(rootFolder):
         shutil.rmtree(destination, ignore_errors=True)
     shutil.copytree(folder, destination)
 
+
 # An object that exposes two functions. The functions must be passed in as
 # constructor arguments.
 class BuilderHandle(object):
     def __init__(self, beginPlot, addRecord):
         self.beginPlot = beginPlot
         self.addRecord = addRecord
+
 
 class _Flag(object):
     def __init__(self, initial=False):
@@ -149,6 +160,7 @@ class _Flag(object):
 
     def set(self, value):
         self.value = value
+
 
 @contextmanager
 def Builder(rootFolder, imageFolder, fileName='appendix.html'):
@@ -176,12 +188,13 @@ def Builder(rootFolder, imageFolder, fileName='appendix.html'):
 
         _finishHtml(out.write)
 
+
 if __name__ == '__main__':
     import analyzer
 
     plot = analyzer.Plot('foo.png')
     plot.yAxisLabel = 'sin(x)'
-    plot.xAxisLabel = 'x (radians)' 
+    plot.xAxisLabel = 'x (radians)'
     plot.query = 'select Thing, count(*) as HowMany\n' \
                  'from Table\n' \
                  'where Whatever > 343\n' \
@@ -195,7 +208,6 @@ if __name__ == '__main__':
         builder.addRecord([2.3, 33221])
         builder.addRecord([5.6, 45544.23])
         builder.addRecord(['Infinity', 0])
-
 '''
 Copyright (c) 2016 David Goffredo
 

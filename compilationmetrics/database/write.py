@@ -1,11 +1,10 @@
-
-
 from ..enforce import enforce
 
 import sys
 import uuid
 import sqlite3
 import datetime
+
 
 #
 # The arguments sourceFileInfo, machineInfo, and resourceInfo are dicts:
@@ -19,29 +18,34 @@ import datetime
 #                     'systemCpuTime', 'blockingInputOperations',
 #                     'blockingOutputOperations']
 #
-def createEntry(db, user, startDatetime, durationSeconds, outputObjectSizeBytes,
-                sourceFileInfo, machineInfo, resourceInfo, compilerPath,
-                command):
+def createEntry(db, user, startDatetime, durationSeconds,
+                outputObjectSizeBytes, sourceFileInfo, machineInfo,
+                resourceInfo, compilerPath, command):
     db.execute("PRAGMA foreign_keys = ON;")
 
     machineKey = _addMachine(db, **machineInfo)
     fileKey = _addSourceFile(db, **sourceFileInfo)
     compilationKey = _addCompilation(db, user, startDatetime, durationSeconds,
-                                     outputObjectSizeBytes, fileKey, machineKey,
-                                     compilerPath, **resourceInfo)
+                                     outputObjectSizeBytes, fileKey,
+                                     machineKey, compilerPath, **resourceInfo)
     _addArguments(db, compilationKey, command)
     db.commit()
 
+
 def _addArguments(db, compilationKey, command):
-    db.executemany("insert into Argument(CompilationKey, Position, Value) "
-                   "values(?, ?, ?);",
-                   ((compilationKey, i, arg) for i, arg in enumerate(command)))
+    db.executemany(
+        "insert into Argument(CompilationKey, Position, Value) "
+        "values(?, ?, ?);",
+        ((compilationKey, i, arg) for i, arg in enumerate(command)))
+
 
 def _insert(db, table, columnToValue):
     template = "insert into {table}({cols}) values({placeholders});"
-    query = template.format(table=table, cols=', '.join(columnToValue.keys()),
+    query = template.format(table=table,
+                            cols=', '.join(columnToValue.keys()),
                             placeholders=', '.join('?' for _ in columnToValue))
     db.execute(query, columnToValue.values())
+
 
 def _didInsert(db, table, columnToValue):
     try:
@@ -50,6 +54,7 @@ def _didInsert(db, table, columnToValue):
     except sqlite3.Error as error:
         print(error, file=sys.stderr)
         return False
+
 
 def _addCompilation(db, user, startDatetime, durationSeconds,
                     outputObjectSizeBytes, fileKey, machineKey, compilerPath,
@@ -60,33 +65,34 @@ def _addCompilation(db, user, startDatetime, durationSeconds,
     maxAttempts = 5
     for _ in range(maxAttempts):
         key = uuid.uuid4().hex
-        if _didInsert(db, 'Compilation', {
-            'Key':                      key,
-            'User':                     user,
-            'StartIso8601':             startDatetime.isoformat(),
-            'DurationSeconds':          durationSeconds,
-            'OutputObjectSizeBytes':    outputObjectSizeBytes,
-            'FileKey':                  fileKey,
-            'MachineKey':               machineKey,
-            'CompilerPath':             compilerPath,
-            'MaxResidentMemoryBytes':   maxResidentMemoryBytes,
-            'UserCpuTime':              userCpuTime,
-            'SystemCpuTime':            systemCpuTime,
-            'BlockingInputOperations':  blockingInputOperations,
-            'BlockingOutputOperations': blockingOutputOperations
-        }):
+        if _didInsert(
+                db, 'Compilation', {
+                    'Key': key,
+                    'User': user,
+                    'StartIso8601': startDatetime.isoformat(),
+                    'DurationSeconds': durationSeconds,
+                    'OutputObjectSizeBytes': outputObjectSizeBytes,
+                    'FileKey': fileKey,
+                    'MachineKey': machineKey,
+                    'CompilerPath': compilerPath,
+                    'MaxResidentMemoryBytes': maxResidentMemoryBytes,
+                    'UserCpuTime': userCpuTime,
+                    'SystemCpuTime': systemCpuTime,
+                    'BlockingInputOperations': blockingInputOperations,
+                    'BlockingOutputOperations': blockingOutputOperations
+                }):
             return key
 
     msg = 'Unable to insert record after {} attempts.'.format(maxAttempts)
     raise Exception(msg)
+
 
 def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
     colsStr = ', '.join(columns)
     refs = ', '.join('?' for _ in columns)
     template = "insert or ignore into {table}({cols}) values({refs});"
 
-    db.execute(template.format(table=table, cols=colsStr, refs=refs),
-               values)
+    db.execute(template.format(table=table, cols=colsStr, refs=refs), values)
 
     pred = ' and '.join(col + ' is ?' for col in columns)
     template = "select {keyCol} from {table} where {pred};"
@@ -100,19 +106,30 @@ def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
 
     return results[0][0]
 
-def _addSourceFile(db, name, path, gitRevision, gitDiffHead, lineCount, sizeBytes, preprocessedSizeBytes, preprocessedLineCount):
-    columns = ['Name', 'Path', 'GitRevision', 'GitDiffHead', 'LineCount', 'SizeBytes', 'PreprocessedSizeBytes', 'PreprocessedLineCount']
-    values = (name, path, gitRevision, gitDiffHead, lineCount, sizeBytes, preprocessedSizeBytes, preprocessedLineCount)
+
+def _addSourceFile(db, name, path, gitRevision, gitDiffHead, lineCount,
+                   sizeBytes, preprocessedSizeBytes, preprocessedLineCount):
+    columns = [
+        'Name', 'Path', 'GitRevision', 'GitDiffHead', 'LineCount', 'SizeBytes',
+        'PreprocessedSizeBytes', 'PreprocessedLineCount'
+    ]
+    values = (name, path, gitRevision, gitDiffHead, lineCount, sizeBytes,
+              preprocessedSizeBytes, preprocessedLineCount)
 
     return _addUniqueRecord(db, 'File', columns, values)
 
+
 def _addMachine(db, name, system, release, version, machineArch, processor,
                 pageSize):
-    columns = ['Name', 'System', 'Release', 'Version', 'MachineArch',
-               'Processor', 'PageSize']
+    columns = [
+        'Name', 'System', 'Release', 'Version', 'MachineArch', 'Processor',
+        'PageSize'
+    ]
     values = (name, system, release, version, machineArch, processor, pageSize)
 
     return _addUniqueRecord(db, 'Machine', columns, values)
+
+
 #
 # sourceFileInfo keys: ['name', 'path', 'gitRevision', 'gitDiffHead']
 #
@@ -123,29 +140,34 @@ def _addMachine(db, name, system, release, version, machineArch, processor,
 #                     'systemCpuTime', 'blockingInputOperations',
 #                     'blockingOutputOperations']
 #
-def createEntry(db, user, startDatetime, durationSeconds, outputObjectSizeBytes,
-                sourceFileInfo, machineInfo, resourceInfo, compilerPath,
-                command):
+def createEntry(db, user, startDatetime, durationSeconds,
+                outputObjectSizeBytes, sourceFileInfo, machineInfo,
+                resourceInfo, compilerPath, command):
     db.execute("PRAGMA foreign_keys = ON;")
 
     machineKey = _addMachine(db, **machineInfo)
     fileKey = _addSourceFile(db, **sourceFileInfo)
     compilationKey = _addCompilation(db, user, startDatetime, durationSeconds,
-                                     outputObjectSizeBytes, fileKey, machineKey,
-                                     compilerPath, **resourceInfo)
+                                     outputObjectSizeBytes, fileKey,
+                                     machineKey, compilerPath, **resourceInfo)
     _addArguments(db, compilationKey, command)
     db.commit()
 
+
 def _addArguments(db, compilationKey, command):
-    db.executemany("insert into Argument(CompilationKey, Position, Value) "
-                   "values(?, ?, ?);",
-                   ((compilationKey, i, arg) for i, arg in enumerate(command)))
+    db.executemany(
+        "insert into Argument(CompilationKey, Position, Value) "
+        "values(?, ?, ?);",
+        ((compilationKey, i, arg) for i, arg in enumerate(command)))
+
 
 def _insert(db, table, columnToValue):
     template = "insert into {table}({cols}) values({placeholders});"
-    query = template.format(table=table, cols=', '.join(columnToValue.keys()),
+    query = template.format(table=table,
+                            cols=', '.join(columnToValue.keys()),
                             placeholders=', '.join('?' for _ in columnToValue))
     db.execute(query, list(columnToValue.values()))
+
 
 def _didInsert(db, table, columnToValue):
     try:
@@ -154,6 +176,7 @@ def _didInsert(db, table, columnToValue):
     except sqlite3.Error as error:
         print(error, file=sys.stderr)
         return False
+
 
 def _addCompilation(db, user, startDatetime, durationSeconds,
                     outputObjectSizeBytes, fileKey, machineKey, compilerPath,
@@ -164,33 +187,34 @@ def _addCompilation(db, user, startDatetime, durationSeconds,
     maxAttempts = 5
     for _ in range(maxAttempts):
         key = uuid.uuid4().hex
-        if _didInsert(db, 'Compilation', {
-            'Key':                      key,
-            'User':                     user,
-            'StartIso8601':             startDatetime,
-            'DurationSeconds':          durationSeconds,
-            'OutputObjectSizeBytes':    outputObjectSizeBytes,
-            'FileKey':                  fileKey,
-            'MachineKey':               machineKey,
-            'CompilerPath':             compilerPath,
-            'MaxResidentMemoryBytes':   maxResidentMemoryBytes,
-            'UserCpuTime':              userCpuTime,
-            'SystemCpuTime':            systemCpuTime,
-            'BlockingInputOperations':  blockingInputOperations,
-            'BlockingOutputOperations': blockingOutputOperations
-        }):
+        if _didInsert(
+                db, 'Compilation', {
+                    'Key': key,
+                    'User': user,
+                    'StartIso8601': startDatetime,
+                    'DurationSeconds': durationSeconds,
+                    'OutputObjectSizeBytes': outputObjectSizeBytes,
+                    'FileKey': fileKey,
+                    'MachineKey': machineKey,
+                    'CompilerPath': compilerPath,
+                    'MaxResidentMemoryBytes': maxResidentMemoryBytes,
+                    'UserCpuTime': userCpuTime,
+                    'SystemCpuTime': systemCpuTime,
+                    'BlockingInputOperations': blockingInputOperations,
+                    'BlockingOutputOperations': blockingOutputOperations
+                }):
             return key
 
     msg = 'Unable to insert record after {} attempts.'.format(maxAttempts)
     raise Exception(msg)
+
 
 def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
     colsStr = ', '.join(columns)
     refs = ', '.join('?' for _ in columns)
     template = "insert or ignore into {table}({cols}) values({refs});"
 
-    db.execute(template.format(table=table, cols=colsStr, refs=refs),
-               values)
+    db.execute(template.format(table=table, cols=colsStr, refs=refs), values)
 
     pred = ' and '.join(col + ' is ?' for col in columns)
     template = "select {keyCol} from {table} where {pred};"
@@ -204,13 +228,17 @@ def _addUniqueRecord(db, table, columns, values, keyColumn='Key'):
 
     return results[0][0]
 
+
 def _addMachine(db, name, system, release, version, machineArch, processor,
                 pageSize):
-    columns = ['Name', 'System', 'Release', 'Version', 'MachineArch',
-               'Processor', 'PageSize']
+    columns = [
+        'Name', 'System', 'Release', 'Version', 'MachineArch', 'Processor',
+        'PageSize'
+    ]
     values = (name, system, release, version, machineArch, processor, pageSize)
 
     return _addUniqueRecord(db, 'Machine', columns, values)
+
 
 '''
 Copyright (c) 2016 David Goffredo

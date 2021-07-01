@@ -1,13 +1,13 @@
-
-
 from ..enforce import enforce
 
 import subprocess
 import os
 from distutils.spawn import find_executable
 
+
 def _dirOf(filePath):
     return os.path.dirname(os.path.realpath(filePath))
+
 
 # Returns (returnCode, stdout)
 # where stdout is stripped of trailing whitespace.
@@ -22,28 +22,34 @@ def _callInDirOf(filePath, command):
         output, _ = process.communicate()
         return process.returncode, output.rstrip()
 
+
 def hasGit():
     return find_executable('git') is not None
+
 
 def inAnyRepo(filePath):
     rc, _ = _callInDirOf(filePath, ['git', 'rev-parse'])
     return rc == 0
 
+
 def getHeadRevision(filePath):
     rc, output = _callInDirOf(filePath, ['git', 'rev-parse', 'HEAD'])
-    enforce(rc == 0, "Can't get revision. Is {} in a git repo?".format(filePath))
+    enforce(rc == 0,
+            "Can't get revision. Is {} in a git repo?".format(filePath))
     return output
 
+
 def diffHead(filePath):
-    rc, output = _callInDirOf(filePath, 
-                              ['git', 'diff', os.path.basename(filePath)])
+    rc, output = _callInDirOf(
+        filePath, ['git', 'diff', os.path.basename(filePath)])
     enforce(rc == 0, "Can't diff file. Is {} in a git repo?".format(filePath))
     return output
+
 
 if __name__ == '__main__':
     import sys
     if len(sys.argv) < 2:
-        sys.exit() # Nothing to do
+        sys.exit()  # Nothing to do
 
     filePath = sys.argv[1]
     isInGit = inAnyRepo(filePath)
@@ -51,7 +57,6 @@ if __name__ == '__main__':
     if isInGit:
         print('Head revision: ', getHeadRevision(filePath))
         print('Diff with HEAD: \n', diffHead(filePath))
-
 '''
 Copyright (c) 2016 David Goffredo
 

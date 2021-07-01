@@ -1,5 +1,3 @@
-
-
 # Provides a generator 'query' that manages a connection with a sqlite3
 # database file and runs its SQL query argument in an environment having
 # a view (virtual read-only table) for convenience.
@@ -7,42 +5,38 @@
 from .open import connect
 from contextlib import contextmanager
 
+
 def _createVariablesTempTable(db, name, variables):
     columns = ', '.join(variables.keys())
     db.execute('create temporary table {name}({columns});'.format(
         name=name, columns=columns))
 
     values = ', '.join(':{}'.format(column) for column in variables.keys())
-    db.execute('insert into {name}({columns}) values({values});'.format(
-        name=name, columns=columns, values=values
-    ), variables)
+    db.execute(
+        'insert into {name}({columns}) values({values});'.format(
+            name=name, columns=columns, values=values), variables)
 
     db.commit()
 
+
 def _makeWhereClause(db, tempTableName, plot):
     predicates = []
-    variables = {
-        'begin': None,
-        'end': None,
-        'system': None
-    }
+    variables = {'begin': None, 'end': None, 'system': None}
 
     def setAndSelectVariable(name, value):
         variables[name] = value
-        return '(select {name} from {table})'.format(name=name, 
+        return '(select {name} from {table})'.format(name=name,
                                                      table=tempTableName)
 
     if plot.period:
         begin, end = plot.period
         predicates.append('Compilation.StartIso8601 between {} and {}'.format(
             setAndSelectVariable('begin', begin),
-            setAndSelectVariable('end', end)
-        ))
+            setAndSelectVariable('end', end)))
 
     if plot.system:
         predicates.append('Machine.System = {}'.format(
-            setAndSelectVariable('system', plot.system)
-        ))
+            setAndSelectVariable('system', plot.system)))
 
     if len(predicates) == 0:
         whereClause = ''
@@ -51,6 +45,7 @@ def _makeWhereClause(db, tempTableName, plot):
         _createVariablesTempTable(db, tempTableName, variables)
 
     return whereClause
+
 
 _viewDescriptionTemplate = '''
 create temporary view {viewName} as
@@ -82,6 +77,7 @@ inner join File    on Compilation.FileKey = File.Key
 {whereClause};
 '''
 
+
 @contextmanager
 def _scopedView(db, plot):
     # Build the query that will define the SQL view.
@@ -97,7 +93,7 @@ def _scopedView(db, plot):
     tempTableName = 'CompilationViewParameters'
     whereClause = _makeWhereClause(db, tempTableName, plot)
     viewName = 'CompilationView'
-    viewDesc = _viewDescriptionTemplate.format(viewName=viewName, 
+    viewDesc = _viewDescriptionTemplate.format(viewName=viewName,
                                                whereClause=whereClause)
 
     # Create the view and expose the modified database connection to the
@@ -111,6 +107,7 @@ def _scopedView(db, plot):
     db.execute('drop table if exists {};'.format(tempTableName))
     db.commit()
 
+
 @contextmanager
 def _databaseWithView(plot, databaseName):
     db = connect(databaseName)
@@ -122,13 +119,15 @@ def _databaseWithView(plot, databaseName):
     # Now the caller is done with the connection.
     db.close()
 
+
 def query(plot, databaseName=None):
     with _databaseWithView(plot, databaseName) as db:
         for row in db.execute(plot.query):
-            yield row 
+            yield row
+
 
 if __name__ == '__main__':
-    plotDesc='''
+    plotDesc = '''
 .define-query 'longest-duration'
 
     select FileName, avg(DurationSeconds) as AverageDuration
@@ -151,7 +150,6 @@ if __name__ == '__main__':
         print()
         for row in query(plot):
             print(row)
-
 '''
 Copyright (c) 2016 David Goffredo
 

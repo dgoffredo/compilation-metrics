@@ -1,7 +1,4 @@
-
-
 from ..enforce import enforce
-
 '''
 This parser has four states (excluding the end states "error" and "success"),
 transitions among which are described below:
@@ -38,15 +35,18 @@ State Name             Token  Next State  Note / Action
 '''
 
 from . import lexer
+
 Kind = lexer.TokenKind
 
 import shlex
+
 
 def _getWords(line):
     shLexer = shlex.shlex(instream=line, posix=True)
     shLexer.commenters = ''
     shLexer.wordchars += '-'
     return list(shLexer)
+
 
 class Trait(object):
     def __init__(self, name, args):
@@ -56,6 +56,7 @@ class Trait(object):
     def __repr__(self):
         return '<Trait name: {} args: {}'.format(self.name, self.args)
 
+
 def _parseTrait(text):
     words = _getWords(text)
     template = 'Need at least a dot, a name, and one arg. '
@@ -63,7 +64,8 @@ def _parseTrait(text):
     enforce(len(words) >= 3, template.format(text, words))
     # ['.', 'name', 'arg1', 'arg2', ...]
     #     --> Trait('name', ['arg1', 'arg2', ...])
-    return Trait(name=words[1], args=words[2:])                                                                         
+    return Trait(name=words[1], args=words[2:])
+
 
 class Definition(object):
     def __init__(self):
@@ -71,12 +73,13 @@ class Definition(object):
         self.sqlBlock = None
 
     def __str__(self):
-        return '<definition traits: {} sql: {}>'.format(self.traits, self.sqlBlock)
+        return '<definition traits: {} sql: {}>'.format(
+            self.traits, self.sqlBlock)
 
 
 # Each of the 'expect' methods (corresponding to the states tabulated above)
 # takes a token and returns a tuple (method, definition)
-# where 'method' is the bound method to be invoked with the next token, and 
+# where 'method' is the bound method to be invoked with the next token, and
 # 'definition' is the definition that just finished parsing (or None if no
 # definition was just finished).
 #
@@ -108,7 +111,7 @@ State Name             Token  Next State  Note / Action
             return self._expectDefinition, None
         elif token.kind == Kind.COMMAND_LINE:
             return self._expectCommand, self._newDef(token.text)
-        else: 
+        else:
             enforce(token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token))
             raise Exception('Unexpected indent at: "{}"'.format(token.text))
 
@@ -126,7 +129,7 @@ State Name             Token  Next State  Note / Action
         elif token.kind == Kind.COMMAND_LINE:
             self.currentDef.traits.append(_parseTrait(token.text))
             return self._expectCommand, None
-        else: 
+        else:
             enforce(token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token))
             raise Exception('Unexpected indent at: "{}"'.format(token.text))
 
@@ -143,7 +146,7 @@ State Name             Token  Next State  Note / Action
             return self._expectDefinition, None
         elif token.kind == Kind.COMMAND_LINE:
             return self._expectCommand, self._newDef(token.text)
-        else: 
+        else:
             enforce(token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token))
             self.currentDef.sqlBlock = [token.text]
             return self._expectSql, None
@@ -162,10 +165,11 @@ State Name             Token  Next State  Note / Action
         elif token.kind == Kind.COMMAND_LINE:
             raise Exception('Need an empty line between indented section and '
                             'unindented section at: {}'.format(token))
-        else: 
+        else:
             enforce(token.kind == Kind.INDENTED_LINE, 'Bad: {}'.format(token))
             self.currentDef.sqlBlock.append(token.text)
             return self._expectSql, None
+
 
 def parse(tokenGenerator):
     parser = Parser()
@@ -174,17 +178,17 @@ def parse(tokenGenerator):
         f, newDefinition = f(token)
         if newDefinition:
             yield newDefinition
-    
+
     # Leftovers
     if parser.currentDef:
         yield parser.currentDef
+
 
 if __name__ == '__main__':
     import sys
     for definition in parse(lexer.lex(sys.stdin)):
         print(definition)
         print()
-        
 '''
 Copyright (c) 2016 David Goffredo
 

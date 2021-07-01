@@ -1,4 +1,3 @@
-
 '''
 Lines are read from input and passed through the data pipeline shown below.
 
@@ -28,9 +27,11 @@ from ..database.read import query
 
 import os
 
+
 def _mkdir(folderPath):
     if not os.path.exists(folderPath):
         os.makedirs(folderPath)
+
 
 def _analyzePlotsFile(plotsFile):
     lex = lexer.lex
@@ -38,6 +39,7 @@ def _analyzePlotsFile(plotsFile):
     analyze = analyzer.analyze
 
     return analyze(parse(lex(plotsFile)))
+
 
 # plotsFile: File object from which to read plot/query descriptions.
 # reportMarkdownFile: File object containing the report in markdown notation.
@@ -48,7 +50,7 @@ def generate(plotsFile, reportMarkdownFile, rootFolder, databaseName=None):
     _mkdir(rootFolder)
     with open(os.path.join(rootFolder, 'index.html'), 'w') as indexHtmlFile:
         markdown.toHtml(reportMarkdownFile, indexHtmlFile)
-    
+
     imageFolder = os.path.join(rootFolder, 'images')
     _mkdir(imageFolder)
 
@@ -63,13 +65,13 @@ def generate(plotsFile, reportMarkdownFile, rootFolder, databaseName=None):
                     renderer.addRecord(dataRecord)
                     appendixBuilder.addRecord(dataRecord)
 
+
 if __name__ == '__main__':
     import sys
     plotsFile = sys.stdin
     rootFolder = '.'
     with open(sys.argv[1]) as reportMarkdownFile:
         generate(plotsFile, reportMarkdownFile, rootFolder)
-
 '''
 Copyright (c) 2016 David Goffredo
 

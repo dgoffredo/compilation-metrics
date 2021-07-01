@@ -1,9 +1,8 @@
-
-
 from ..enforce import enforce
 
 import os
 from distutils.spawn import find_executable
+
 
 # Wrapper around a list of command line arguments used to invoke the compiler.
 # Provides methods for getting the compiler path, output file, source, etc.
@@ -14,7 +13,8 @@ class Command(list):
 
     def getPaths(self):
         try:
-            return self.sourcePath(), self.outputPath(), self.compilerPath(), None
+            return self.sourcePath(), self.outputPath(), self.compilerPath(
+            ), None
         except Exception as error:
             return None, None, None, error
 
@@ -32,11 +32,11 @@ class Command(list):
         if arg == flag:
             # The object name follows the arg.
             enforce(i != 0, 'The last argument is "{}".'.format(flag))
-            return Command(self[:-i-1] + self[-i + 1:])
+            return Command(self[:-i - 1] + self[-i + 1:])
         else:
             # The object name is combined with the arg.
-            return Command(self[:-i-1] + self[-i:])
-        
+            return Command(self[:-i - 1] + self[-i:])
+
     def withFlag(self, flag):
         args = [self[0]]
         args.append(flag)
@@ -66,7 +66,7 @@ class Command(list):
         #          gcc file.c -c -o output.o
         #      Most of the time, though, the last argument is the file to
         #      compile, if there is a file to compile at all.
-        
+
     def compilerPath(self):
         enforce(len(self) > 0, 'Command is empty.')
         return find_executable(self[0])
@@ -78,10 +78,10 @@ class Command(list):
             'sourcePath': self.sourcePath()
         }
 
+
 if __name__ == '__main__':
     import sys
     print(Command(sys.argv[1:]).info())
-
 '''
 Copyright (c) 2016 David Goffredo
 

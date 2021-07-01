@@ -1,14 +1,13 @@
-
-
 from ..enforce import enforce
 from . import iso8601
 
 # TODO Document
 
+
 class Plot(object):
     def __init__(self, imageName):
         self.imageName = imageName
-        self.query = None # Filled in later.
+        self.query = None  # Filled in later.
         self.width = 800
         self.height = 600
         self.xAxisLabel = None
@@ -16,17 +15,18 @@ class Plot(object):
         self.yMin = None
         self.yMax = None
         self.style = 'horizontal-bars'
-        self.system = None # 'system' is for fixing Machine.System in SQL,
-                           # e.g. 'Linux', 'AIX', or 'SunOS' (from uname).
-        self.period = None # The interval of 'start' datetimes to consider.
-                           # If not specified, then it's the largest interval
-                           # in the database (i.e. no restriction).
-                           # If this attribute is not None, then it's a tuple
-                           # (begin, end).
-                           # TBD inclusive, exclusive?
+        self.system = None  # 'system' is for fixing Machine.System in SQL,
+        # e.g. 'Linux', 'AIX', or 'SunOS' (from uname).
+        self.period = None  # The interval of 'start' datetimes to consider.
+        # If not specified, then it's the largest interval
+        # in the database (i.e. no restriction).
+        # If this attribute is not None, then it's a tuple
+        # (begin, end).
+        # TBD inclusive, exclusive?
 
     def __repr__(self):
         return str(self.__dict__)
+
 
 def analyze(definitions):
     if isinstance(definitions, dict):
@@ -38,25 +38,29 @@ def analyze(definitions):
         for plot in analyzeDefinitions(definitions):
             yield plot
 
+
 def analyzeDefinitions(definitionGenerator):
-    queries = dict() # {name: sql}
+    queries = dict()  # {name: sql}
     for definition in definitionGenerator:
         queries, plot = analyzeDefinition(definition, queries)
         if plot:
             yield plot
 
+
 def defineQuery(definition):
     firstTrait = definition.traits[0]
-    enforce(len(definition.traits) == 1, '"define-query" cannot have traits.' )
+    enforce(len(definition.traits) == 1, '"define-query" cannot have traits.')
     enforce(definition.sqlBlock is not None, '"define-query" must have SQL.')
     enforce(len(firstTrait.args) == 1, '"define-query" must have a name only.')
     queryName = firstTrait.args[0]
     sql = ''.join(definition.sqlBlock)
     return queryName, sql
 
+
 def definePlot(definition, queries):
     firstTrait = definition.traits[0]
-    enforce(firstTrait.name == 'define-plot', 'Bad definition "{}"'.format(firstTrait.name))
+    enforce(firstTrait.name == 'define-plot',
+            'Bad definition "{}"'.format(firstTrait.name))
     enforce(len(firstTrait.args) == 1, '"define-plot" must have a name only.')
     imageName = firstTrait.args[0]
     traits = definition.traits[1:]
@@ -68,7 +72,8 @@ def definePlot(definition, queries):
     def setQuery(trait):
         enforce(len(trait.args) == 1, 'A query reference needs (only) a name.')
         sqlDuped = definition.sqlBlock is not None
-        enforce(not sqlDuped, 'Both a "query" trait and a SQL block were specified.')
+        enforce(not sqlDuped,
+                'Both a "query" trait and a SQL block were specified.')
         queryName = trait.args[0]
         enforce(plot.query is None, 'query specified more than once.')
         query = queries.get(queryName)
@@ -87,13 +92,17 @@ def definePlot(definition, queries):
         args = trait.args
         parse = iso8601.parse
         begin, end = parse(args[0]), parse(args[1])
-        enforce(begin < end, 'The datetime range must be positive and nonempty.')
+        enforce(begin < end,
+                'The datetime range must be positive and nonempty.')
         plot.period = begin, end
 
     def setAttribute(attribute, constructor):
         def setter(trait):
-            enforce(len(trait.args) == 1, 'A {} specifier needs only one argument.'.format(attribute))
+            enforce(
+                len(trait.args) == 1,
+                'A {} specifier needs only one argument.'.format(attribute))
             setattr(plot, attribute, constructor(trait.args[0]))
+
         return setter
 
     traitHandlers = {
@@ -117,6 +126,7 @@ def definePlot(definition, queries):
 
     return plot
 
+
 def analyzeDefinition(definition, queries):
     enforce(len(definition.traits) != 0, 'Must have at least one trait.')
     firstTrait = definition.traits[0]
@@ -124,15 +134,18 @@ def analyzeDefinition(definition, queries):
 
     if firstTrait.name == 'define-query':
         queryName, sql = defineQuery(definition)
-        enforce(queryName not in queries, 'Duplicate query name "{}"'.format(queryName))
+        enforce(queryName not in queries,
+                'Duplicate query name "{}"'.format(queryName))
         queries[queryName] = sql
-        return queries, None # No plot
+        return queries, None  # No plot
     else:
         plot = definePlot(definition, queries)
         return queries, plot
 
+
 def analyzeJson(defs):
-    raise Exception('Not yet implemented.') # TODO
+    raise Exception('Not yet implemented.')  # TODO
+
 
 if __name__ == '__main__':
     import sys
@@ -141,8 +154,7 @@ if __name__ == '__main__':
 
     for plot in analyze(parse(lex(sys.stdin))):
         for key, value in plot.__dict__.items():
-            print('    ', key, '-->', value)    
-            
+            print('    ', key, '-->', value)
 '''
 Copyright (c) 2016 David Goffredo
 

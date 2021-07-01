@@ -1,4 +1,3 @@
-
 from distutils.spawn import find_executable
 import subprocess
 import os
@@ -6,8 +5,10 @@ import json
 
 from ..enforce import enforce
 
+
 def hasGnuplot():
     return find_executable('gnuplot') is not None
+
 
 # Prepare for sending to gnuplot as data. Print as-is, except for strings,
 # which are quoted and escaped.
@@ -17,6 +18,7 @@ def stringify(value):
         return json.dumps(value)
     else:
         return str(value)
+
 
 class Gnuplot(object):
     def __init__(self):
@@ -59,6 +61,7 @@ class Gnuplot(object):
 
     def __exit__(self, type, value, traceback):
         self.quit()
+
 
 '''
 Copyright (c) 2016 David Goffredo

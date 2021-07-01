@@ -1,5 +1,3 @@
-
-
 from contextlib import contextmanager
 from . import gnuplot
 from ..enforce import enforce
@@ -7,9 +5,11 @@ import json
 import os.path
 import tempfile
 
+
 def _doubleQuote(s):
     s = s if isinstance(s, str) else str(s)
     return json.dumps(s)
+
 
 def _rotate(plot, imageFolder, gp):
     imagePath = os.path.join(imageFolder, plot.imageName)
@@ -49,50 +49,42 @@ def _rotate(plot, imageFolder, gp):
 
     gp.send(script)
     gp.closeOutput()
-    
+
     # TODO: It'd be better to do this using shutil, but then there's a race
     #       between this and gnuplot finishing its plotting. I tried
     #       to synchronize them using gnuplot's stderr via the 'print'
     #       command, but I couldn't get the buffering right.
-    #       The bummer is that this will fork twice for each rotation :( 
+    #       The bummer is that this will fork twice for each rotation :(
     #
-    gp.send('!mv {} {}'.format(_doubleQuote(tempPath), _doubleQuote(imagePath)))
+    gp.send('!mv {} {}'.format(_doubleQuote(tempPath),
+                               _doubleQuote(imagePath)))
     gp.send('!rm -r {}'.format(_doubleQuote(tempFolder)))
 
+
 def _horizontalBars(xAxisLabel, yAxisLabel, yMin, yMax):
-    template  = '\n'.join([
-        "unset key",
-
-        "set style data histogram",
-        "set style histogram cluster gap 1",
-        "set style fill solid border -1",
-
-        "set boxwidth 0.25",
-
-        "set xtics nomirror rotate by 90 right",
-        "set x2label {xlabel}",
-        "unset x2tics",
-
-        "set ytics nomirror rotate by 90",
-        "set ylabel {ylabel}",
+    template = '\n'.join([
+        "unset key", "set style data histogram",
+        "set style histogram cluster gap 1", "set style fill solid border -1",
+        "set boxwidth 0.25", "set xtics nomirror rotate by 90 right",
+        "set x2label {xlabel}", "unset x2tics",
+        "set ytics nomirror rotate by 90", "set ylabel {ylabel}",
         "set yrange [{yMinOrStar}:{yMaxOrStar}]",
-
         "plot '-' using 2:xticlabel(1)"
     ]) + '\n'
 
     def ifNone(value, valueIfNone):
         return valueIfNone if value is None else value
 
-    return template.format(xlabel=_doubleQuote(ifNone(xAxisLabel, ' ')), 
+    return template.format(xlabel=_doubleQuote(ifNone(xAxisLabel, ' ')),
                            ylabel=_doubleQuote(ifNone(yAxisLabel, ' ')),
                            yMinOrStar=ifNone(yMin, '*'),
                            yMaxOrStar=ifNone(yMax, '*'))
 
-_styles = {
-    'horizontal-bars': _horizontalBars
-}
+
+_styles = {'horizontal-bars': _horizontalBars}
 
 _rotatedStyles = frozenset(['horizontal-bars'])
+
 
 # Every plot is a png with a (file)name, a width, and a height.
 # This function returns gnuplot commands that clear any previous configuration
@@ -116,9 +108,10 @@ def _boilerplate(plot, imageFolder):
         "set output {name}"
     ]) + '\n'
 
-    return template.format(width=width, 
-                           height=height, 
+    return template.format(width=width,
+                           height=height,
                            name=_doubleQuote(imagePath))
+
 
 def _setupPlot(plot, imageFolder, gnuplotInstance):
     gp = gnuplotInstance
@@ -130,16 +123,16 @@ def _setupPlot(plot, imageFolder, gnuplotInstance):
     gp.send(_boilerplate(plot, imageFolder))
 
     # Send the plot command. Afterwards, gnuplot will be waiting for plot data.
-    gp.send(_styles[style](plot.xAxisLabel, 
-                           plot.yAxisLabel, 
-                           plot.yMin, 
+    gp.send(_styles[style](plot.xAxisLabel, plot.yAxisLabel, plot.yMin,
                            plot.yMax))
+
 
 def _finishPlot(plot, imageFolder, gp):
     gp.endDataSection()
     gp.closeOutput()
     if plot.style in _rotatedStyles:
         _rotate(plot, imageFolder, gp)
+
 
 # If the argument is None, then yield a scoped Gnuplot instance.
 # If the argument is not None, then yield the argument without any additional
@@ -151,6 +144,7 @@ def scopeOrNope(gp):
             yield scopedGp
     else:
         yield gp
+
 
 # RendererHandle is a restriction on gnuplot.Gnuplot. It allows a holder to
 # write plot data (i.e. data points) to a Gnuplot, but that's it.
@@ -165,12 +159,14 @@ class RendererHandle(object):
     def addRecord(self, row):
         return self.writeDataRow(row)
 
+
 @contextmanager
 def Renderer(plot, imageFolder, gnuplotInstance=None):
     with scopeOrNope(gnuplotInstance) as gp:
         _setupPlot(plot, imageFolder, gp)
         yield RendererHandle(gp)
         _finishPlot(plot, imageFolder, gp)
+
 
 if __name__ == '__main__':
     import analyzer
@@ -182,7 +178,7 @@ if __name__ == '__main__':
 
     plot = analyzer.Plot('foo.png')
     plot.yAxisLabel = 'sin(x)'
-    plot.xAxisLabel = 'x (radians)' 
+    plot.xAxisLabel = 'x (radians)'
 
     if len(sys.argv) == 3:
         plot.width = int(sys.argv[1])
@@ -198,7 +194,6 @@ if __name__ == '__main__':
         n = 50
         for x in (i * coeff(n) for i in range(n)):
             renderer.writeDataRow(['sin({:.2f})'.format(x), math.sin(x)])
-            
 '''
 Copyright (c) 2016 David Goffredo
 

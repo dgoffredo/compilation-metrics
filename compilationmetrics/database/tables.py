@@ -1,5 +1,3 @@
-
-
 fileDef = '''
 create table if not exists
 File(
@@ -62,21 +60,22 @@ Argument(
 
 definitions = [fileDef, machineDef, compilationDef, argumentDef]
 
+
 def createAll(db):
     for table in definitions:
         db.execute(table)
     db.commit()
 
+
 if __name__ == '__main__':
     import sys
     if len(sys.argv) < 2:
-        sys.exit() # No output file
+        sys.exit()  # No output file
 
     import sqlite3
     db = sqlite3.connect(sys.argv[1])
     createAll(db)
     db.commit()
-
 '''
 Copyright (c) 2016 David Goffredo
 

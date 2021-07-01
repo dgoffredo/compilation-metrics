@@ -1,12 +1,13 @@
-
 import re
 
 from ..enforce import enforce
+
 
 class TokenKind:
     EMPTY_LINE = 'EMPTY_LINE'
     COMMAND_LINE = 'COMMAND_LINE'
     INDENTED_LINE = 'INDENTED_LINE'
+
 
 class Token(object):
     def __init__(self, kind, text):
@@ -16,16 +17,20 @@ class Token(object):
     def __str__(self):
         return '<{}: "{}">'.format(self.kind, self.text.rstrip())
 
+
 def indentWidth():
     return 4
+
 
 class _Regex:
     empty = re.compile(r'^\s*$')
     command = re.compile(r'^\.\s*\S')
     indented = re.compile(r'^[ ]{{{}}}\s*\S'.format(indentWidth()))
 
+
 def unindent(line):
     return line[indentWidth():]
+
 
 # A generator :: file object --> Token
 def lex(file):
@@ -35,14 +40,15 @@ def lex(file):
         elif _Regex.indented.match(line):
             yield Token(TokenKind.INDENTED_LINE, unindent(line))
         else:
-            enforce(_Regex.command.match(line), 'Invalid line: {}'.format(line))
+            enforce(_Regex.command.match(line),
+                    'Invalid line: {}'.format(line))
             yield Token(TokenKind.COMMAND_LINE, line)
+
 
 if __name__ == '__main__':
     import sys
     for token in lex(sys.stdin):
         print(token)
-            
 '''
 Copyright (c) 2016 David Goffredo
 

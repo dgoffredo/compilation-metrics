@@ -1,5 +1,3 @@
-
-
 import os
 import sqlite3
 import datetime
@@ -9,6 +7,7 @@ from . import tables
 sqlite3.register_adapter(datetime.datetime, datetime.datetime.isoformat)
 
 _dbEnvKey = 'COMPILATION_METRICS_DB'
+
 
 def _getDbPath(dbPath):
     if dbPath:
@@ -20,10 +19,12 @@ def _getDbPath(dbPath):
                         'variable {} is not set.'.format(_dbEnvKey))
     return dbPath
 
+
 def connect(dbPath=None):
     db = sqlite3.connect(_getDbPath(dbPath))
     tables.createAll(db)
     return db
+
 
 '''
 Copyright (c) 2016 David Goffredo

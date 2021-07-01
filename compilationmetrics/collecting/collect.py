@@ -1,5 +1,3 @@
-
-
 from . import command
 from . import git
 from . import measure
@@ -14,6 +12,7 @@ import os
 import getpass
 import traceback
 
+
 def _machineInfo():
     uname = platform.uname()
     return {
@@ -26,20 +25,23 @@ def _machineInfo():
         'pageSize': resource.getpagesize()
     }
 
+
 def _writeToDatabaseImpl(user, startDatetime, durationSeconds, outputSizeBytes,
-                        sourceInfo, machineInfo, resources, compilerPath,
-                        command):
+                         sourceInfo, machineInfo, resources, compilerPath,
+                         command):
     db = connect()
-    createEntry(db, user, startDatetime, durationSeconds,
-                outputSizeBytes, sourceInfo, machineInfo, resources,
-                compilerPath, command)
+    createEntry(db, user, startDatetime, durationSeconds, outputSizeBytes,
+                sourceInfo, machineInfo, resources, compilerPath, command)
+
 
 def writeToDatabase(request):
     return _writeToDatabaseImpl(**request)
 
+
 def _lineCount(path):
     with open(path) as file:
         return sum(1 for line in file)
+
 
 def _preprocessSource(cmd):
     # Strip away the "-c" flag (meaning "compile it") and the "-o" flag
@@ -60,16 +62,18 @@ def _preprocessSource(cmd):
         sizeBytes += len(line)
         lineCount += 1
 
+
 def _doMetrics(cmd, start, durationSeconds, resources, callback):
     sourcePath, outputPath, compilerPath, error = cmd.getPaths()
     if error:
-        return # TODO: In verbose mode, display why.
+        return  # TODO: In verbose mode, display why.
 
     source = os.path.basename(sourcePath)
     sourceLineCount = _lineCount(sourcePath)
     sourceSize = os.path.getsize(sourcePath)
     outputSize = os.path.getsize(outputPath)
-    preprocessedSourceSize, preprocessedSourceLineCount = _preprocessSource(cmd)
+    preprocessedSourceSize, preprocessedSourceLineCount = _preprocessSource(
+        cmd)
 
     if git.hasGit() and git.inAnyRepo(sourcePath):
         revision = git.getHeadRevision(sourcePath)
@@ -104,14 +108,15 @@ def _doMetrics(cmd, start, durationSeconds, resources, callback):
 
     callback(request)
 
+
 def collect(args, callback=writeToDatabase, debug=False):
     cmd = command.Command(args)
     if len(cmd) == 0:
-        return 0 # Nothing to do
+        return 0  # Nothing to do
 
     rc, start, durationSeconds, resources = measure.call(cmd)
     if rc != 0:
-        return rc # Compilation failed, so there's nothing to do.
+        return rc  # Compilation failed, so there's nothing to do.
 
     try:
         _doMetrics(cmd, start, durationSeconds, resources, callback)
@@ -125,10 +130,9 @@ def collect(args, callback=writeToDatabase, debug=False):
     #
     return rc
 
+
 if __name__ == '__main__':
     sys.exit(collect(sys.argv[1:]))
-
-
 '''
 Copyright (c) 2016 David Goffredo
 
