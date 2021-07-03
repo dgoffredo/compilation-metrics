@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 from compilationmetrics.collecting import collect
+import os
 import sys
 
 
 def main():
-    if len(sys.argv) > 1 and sys.argv[1] == '--debug':
+    if 'COMPILATION_METRICS_DEBUG' in os.environ:
         import json
 
         def handleMetrics(request):
@@ -12,7 +13,7 @@ def main():
             return collect.writeToDatabase(request)
 
         sys.exit(
-            collect.collect(sys.argv[2:], callback=handleMetrics, debug=True))
+            collect.collect(sys.argv[1:], callback=handleMetrics, debug=True))
     else:
         sys.exit(collect.collect(sys.argv[1:]))
 

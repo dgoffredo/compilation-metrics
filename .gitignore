@@ -9,8 +9,10 @@
 .*.swn
 
 # example artifacts
+/images/
 /index.html
 /appendix.html
 
 # build artifacts
-compilationmetrics/collecting/measure
+/compilationmetrics/collecting/measure
+/wrap_compiler

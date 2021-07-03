@@ -9,11 +9,14 @@ import datetime
 import json
 import os
 from pathlib import Path
+import pkgutil
+from pathlib import Path
 import subprocess
+import tempfile
 import time
 
 utcnow = datetime.datetime.utcnow
-measure_exe = Path(__file__).resolve().parent / 'measure'
+measure_exe_data = pkgutil.get_data('compilationmetrics.collecting', 'measure')
 
 
 def timeval_to_seconds(timeval):
@@ -53,15 +56,25 @@ def call(command):
     #
     # Separately, keep track of the total wall time taken by the child process.
 
-    pipe_read_end, pipe_write_end = os.pipe()
-    command = [measure_exe, f'fd://{pipe_write_end}', *command]
-    start = utcnow()
-    child = subprocess.Popen(command, pass_fds=(pipe_write_end, ))
-    os.close(pipe_write_end)  # so that only the child's copy of the fd is open
-    rusage_json = os.fdopen(pipe_read_end).read()
-    rc = child.wait()
-    duration = (utcnow() - start).total_seconds()
-    rusage_dict = json.loads(rusage_json)
+    exe = tempfile.NamedTemporaryFile(delete=False)
+    exe.write(measure_exe_data)
+    exe.close()
+    exe_path = Path(exe.name)
+    exe_path.chmod(0o700)
+        
+    try:
+        pipe_read_end, pipe_write_end = os.pipe()
+        command = [exe_path, f'fd://{pipe_write_end}', *command]
+        start = utcnow()
+        child = subprocess.Popen(command, pass_fds=(pipe_write_end, ))
+        os.close(pipe_write_end)  # so that only the child's copy of the fd is open
+        rusage_json = os.fdopen(pipe_read_end).read()
+        rc = child.wait()
+        duration = (utcnow() - start).total_seconds()
+        rusage_dict = json.loads(rusage_json)
+    finally:
+        exe_path.unlink()
+        
     return rc, start, duration, formatUsage(rusage_dict)
 
 

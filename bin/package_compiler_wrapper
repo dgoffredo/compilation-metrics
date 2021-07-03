@@ -1,0 +1,71 @@
+#!/bin/sh
+
+
+# exit with nonzero status if something goes wrong
+set -e
+
+usage() {
+    cat <<END_USAGE
+package_compiler_wrapper - Create an executable archive of the compiler wrapper
+
+usage:
+
+    $0 OUTPUT_FILE
+        Create an executable python zip archive at the specified OUTPUT_FILE.
+        The executable is a compiler wrapper that records the resource usage of
+        the compiler, e.g.
+
+            \$ $0 wrap_compiler
+            \$ export  COMPILATION_METRICS_DB=metrics.db
+            \$ ./wrap_compiler /usr/bin/g++ -o foo foo.cpp
+            \$ echo 'select count(*) from Compilations' | sqlite3 metrics.db
+            1
+
+    $0 --help
+    $0 -h
+        Print this message.
+END_USAGE
+}
+
+is_help_flag() {
+    [ "$1" = '-h' ] || [ "$1" = '--help' ]
+}
+
+if [ $# -eq 1 ] && is_help_flag "$1"; then
+    usage
+    exit
+elif [ $# -ne 1 ]; then
+    >&2 usage
+    exit 1
+fi
+
+# Get the full path to the output file, because we'll be changing directories
+# before we write to it.
+output=$(realpath "$1")
+
+cd "$(dirname "$0")"
+cd "$(git rev-parse --show-toplevel)"
+
+# Delete the output file if it already exists.  We don't want to end up
+# including it in the zip archive.
+rm -f "$output" 2>/dev/null
+
+tmpdir=$(mktemp -d)
+mkdir "$tmpdir"/package
+
+# Copy the subset of compilationmetrics/ needed by the compiler wrapper.
+find compilationmetrics/collecting compilationmetrics/database \
+    \( -name __pycache__ -prune \) -o -type f \
+    -exec cp --parents {} "$tmpdir"/package \; >/dev/null
+
+cp --parents compilationmetrics/enforce.py "$tmpdir"/package
+cp wrap_compiler.py "$tmpdir"/package/__main__.py
+
+python3 -m zipapp \
+    --compress \
+    "--output=$tmpdir/wrap_compiler" \
+    --python='/usr/bin/env python3' \
+    "$tmpdir"/package
+
+mv "$tmpdir"/wrap_compiler "$output"
+rm -r "$tmpdir"
